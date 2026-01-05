@@ -1,5 +1,5 @@
 import { financialData } from '@/data/financialData';
-import { BarChart3, Calendar } from 'lucide-react';
+import { BarChart3, Calendar, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../ui/button';
 
@@ -27,7 +27,16 @@ export function DashboardHeader({ selectedMonth }: DashboardHeaderProps) {
       </div>
       <div className="flex items-center gap-2">
         <Link to="/register-payment">
-          <Button>Novo Pagamento</Button>
+          <Button variant="default" size="sm">Novo Pagamento</Button>
+        </Link>
+        <Link to="/register-bank">
+          <Button variant="outline" size="sm">Novo Banco</Button>
+        </Link>
+        <Link to="/search-payments">
+          <Button variant="outline" size="sm" className="gap-2">
+            <Search className="h-4 w-4" />
+            Buscar
+          </Button>
         </Link>
         <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary/50 border border-border/50">
           <Calendar className="h-4 w-4 text-muted-foreground" />

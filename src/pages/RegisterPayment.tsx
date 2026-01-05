@@ -52,6 +52,7 @@ import {
   Bank,
   Merchant
 } from "@/hooks/use-requests";
+import { Spinner } from "@/components/ui/spinner";
 
 const formSchema = z.object({
   title: z.string().min(1, "O título é obrigatório"),
@@ -85,17 +86,16 @@ const RegisterPayment = () => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
   // Fetch Merchants (Search)
-  const { data: merchants = [] } = useQuery<Merchant[]>({
+  const { data: merchants = [], isLoading: isLoadingMerchants } = useQuery<Merchant[]>({
     queryKey: ["merchants", debouncedSearch],
     queryFn: () => api.searchMerchants(debouncedSearch),
-    enabled: debouncedSearch.length > 0,
   });
 
   // Custom debounce effect
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(merchantSearch);
-    }, 300);
+    }, 200);
     return () => clearTimeout(timer);
   }, [merchantSearch]);
 
@@ -217,6 +217,11 @@ const RegisterPayment = () => {
                             }}
                           />
                           <CommandList>
+                            {isLoadingMerchants && (
+                              <div className="flex justify-center p-4">
+                                <Spinner size={20} />
+                              </div>
+                            )}
                             <CommandEmpty className="py-2 px-4 text-sm text-muted-foreground">
                               {merchantSearch ? (
                                 <div className="flex flex-col gap-1">
