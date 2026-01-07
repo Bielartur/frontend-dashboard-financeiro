@@ -1,22 +1,20 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Search, Calendar as CalendarIcon, Landmark, Filter } from "lucide-react";
+import { ArrowLeft, Search, Calendar as CalendarIcon, Filter } from "lucide-react";
 import { ClearFilterButton } from "@/components/ClearFilterButton";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { useRequests } from "@/hooks/use-requests";
 import { PaymentResponse } from "@/models/Payment";
 import { Category } from "@/models/Category";
 import { Bank } from "@/models/Bank";
-import { Spinner } from "@/components/ui/spinner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { PaymentTable } from "@/components/dashboard/PaymentTable";
 import { cn } from "@/lib/utils";
 
 const SearchPayments = () => {
@@ -78,12 +76,7 @@ const SearchPayments = () => {
     }),
   });
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(value);
-  };
+
 
   const clearFilters = () => {
     setPaymentMethod("all");
@@ -251,59 +244,12 @@ const SearchPayments = () => {
 
         {/* Results */}
         <div className="space-y-4">
-          {isLoading && (
-            <div className="flex justify-center py-8">
-              <Spinner size={32} />
-            </div>
-          )}
-
-          {!isLoading && payments.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground opacity-50">
-              <Search className="h-12 w-12 mx-auto mb-4" />
-              <p>Nenhum pagamento encontrado.</p>
-            </div>
-          )}
-
-          <div className="grid gap-4">
-            {payments.map((payment) => (
-              <Card key={payment.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <h3 className="font-semibold text-lg">{payment.title}</h3>
-
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1.5">
-                          <CalendarIcon className="h-4 w-4" />
-                          <span>{format(new Date(payment.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</span>
-                        </div>
-                        {payment.bank && (
-                          <div className="flex items-center gap-1.5">
-                            <Landmark className="h-4 w-4" />
-                            <span>{payment.bank.name}</span>
-                          </div>
-                        )}
-                        {payment.category && (
-                          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground text-xs font-medium">
-                            <span>{payment.category.name}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-4 sm:pt-0 mt-2 sm:mt-0">
-                      <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-medium">
-                        {payment.paymentMethod.displayName}
-                      </div>
-                      <span className="text-xl font-bold whitespace-nowrap">
-                        {formatCurrency(payment.amount)}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <PaymentTable
+            payments={payments}
+            isLoading={isLoading}
+            emptyMessage="Nenhum pagamento encontrado."
+            showCategory={true}
+          />
         </div>
       </div>
     </div>

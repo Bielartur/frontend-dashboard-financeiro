@@ -12,7 +12,7 @@ import { TrendingUp, TrendingDown, PiggyBank, Wallet } from 'lucide-react';
 
 const Index = () => {
   const [selectedMonth, setSelectedMonth] = useState<number | null>(new Date().getMonth());
-  const [selectedCategory, setSelectedCategory] = useState<keyof CategoryData | null>(null);
+  const [selectedCategories, setSelectedCategories] = useState<Array<keyof CategoryData>>([]);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
 
   const currentYearData = financialDataByYear[selectedYear] || financialDataByYear[new Date().getFullYear()];
@@ -103,14 +103,18 @@ const Index = () => {
 
           {/* Category Annual Evolution */}
           <CategoryEvolutionChart
-            selectedCategory={selectedCategory}
+            selectedCategories={selectedCategories}
             data={currentYearData}
             selectedYear={selectedYear}
-            onSelectCategory={setSelectedCategory}
+            onSelectCategories={setSelectedCategories}
           />
 
           {/* CategoryTable */}
-          <CategoryTable selectedMonth={selectedMonth} data={currentYearData} />
+          <CategoryTable
+            selectedMonth={selectedMonth}
+            data={currentYearData}
+            selectedYear={selectedYear}
+          />
         </div>
 
         {/* Footer */}

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   categoryColors,
@@ -37,7 +37,28 @@ interface CategoryChartItem {
 export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSelectMonth }: MonthlyCategoryChartProps) {
   const categories = Object.keys(categoryLabels) as Array<keyof CategoryData>;
 
-  const isMonthSelected = selectedMonth !== null;
+  // Internal state to handle "Annual Report" (-1) without affecting global selectedMonth
+  const [internalMonth, setInternalMonth] = useState<number | null>(selectedMonth);
+
+  // Sync internal state when prop changes, unless we are in "Annual" view and want to stay there?
+  // Actually, standard behavior: if parent changes (e.g. from header), we should probably sync.
+  useEffect(() => {
+    setInternalMonth(selectedMonth);
+  }, [selectedMonth]);
+
+  const isMonthSelected = internalMonth !== null && internalMonth !== -1;
+  const isAnnualReport = internalMonth === -1;
+
+  const handleMonthChange = (val: string) => {
+    const newVal = parseInt(val);
+    setInternalMonth(newVal);
+    // Only propagate to parent if it's a valid month, otherwise keep parent as is/null or don't call?
+    // If we want "Consistency", maybe we shouldn't allow the dashboard to be out of sync.
+    // But since the requirement is "option in THIS file", local state is safer to avoid breaking other charts.
+    if (newVal !== -1) {
+      onSelectMonth(newVal);
+    }
+  };
 
   // Calculate available months based on current date
   const availableMonths = useMemo(() => {
@@ -55,25 +76,42 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
 
   // Calculate average for each category (excluding selected month)
   const categoryAverages = useMemo(() => {
-    if (!isMonthSelected) return {} as Record<keyof CategoryData, number>;
+    if (!isMonthSelected || internalMonth === null) return {} as Record<keyof CategoryData, number>;
 
     const averages = {} as Record<keyof CategoryData, number>;
     categories.forEach((category) => {
       const otherMonthsValues = data
-        .filter((_, index) => index !== selectedMonth)
+        .filter((_, index) => index !== internalMonth)
         .map((month) => month.categories[category]);
       averages[category] = otherMonthsValues.reduce((a, b) => a + b, 0) / otherMonthsValues.length;
     });
     return averages;
-  }, [selectedMonth, isMonthSelected, data]);
+  }, [internalMonth, isMonthSelected, data]);
 
-  // Build category chart data with base, excess, and savings
+  // Build category chart data
   const categoryChartData: CategoryChartItem[] = useMemo(() => {
-    if (!isMonthSelected) return [];
+    if (isAnnualReport) {
+      // Annual Totals
+      return categories.map(category => {
+        const totalValue = data.reduce((sum, month) => sum + month.categories[category], 0);
+        return {
+          name: categoryLabels[category],
+          category,
+          value: totalValue,
+          base: totalValue,
+          excess: 0,
+          savings: 0,
+          average: 0, // No average line for annual
+          fill: categoryColors[category],
+        };
+      }).sort((a, b) => b.value - a.value);
+    }
+
+    if (!isMonthSelected || internalMonth === null) return [];
 
     return categories
       .map((category) => {
-        const value = data[selectedMonth].categories[category];
+        const value = data[internalMonth].categories[category];
         const average = categoryAverages[category];
         const isAboveAverage = value > average;
         const isBelowAverage = value < average;
@@ -90,12 +128,30 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
         };
       })
       .sort((a, b) => b.value - a.value);
-  }, [selectedMonth, isMonthSelected, categoryAverages]);
+  }, [internalMonth, isAnnualReport, isMonthSelected, categoryAverages, data]);
 
   const CustomTooltipCategory = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0]?.payload as CategoryChartItem;
       if (!data) return null;
+
+      if (isAnnualReport) {
+        return (
+          <div className="glass-card rounded-lg p-3 border border-border/50 shadow-xl min-w-[200px]">
+            <div className="flex items-center gap-2 mb-2">
+              <div
+                className="w-2.5 h-2.5 rounded-full"
+                style={{ backgroundColor: data.fill }}
+              />
+              <span className="text-sm font-medium text-foreground">{data.name}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-xs text-muted-foreground">Total Anual:</span>
+              <span className="text-xs font-bold text-foreground">{formatCurrency(data.value)}</span>
+            </div>
+          </div>
+        )
+      }
 
       const diff = data.value - data.average;
       const diffPercent = data.average > 0 ? ((diff / data.average) * 100).toFixed(1) : '0';
@@ -141,6 +197,22 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
     if (!payload) return null;
 
     const data = payload as CategoryChartItem;
+
+    // For annual report, just show simple bar
+    if (data.average === 0) {
+      return (
+        <rect
+          x={x}
+          y={y}
+          width={width}
+          height={height}
+          fill={data.fill}
+          rx={4}
+          ry={4}
+        />
+      );
+    }
+
     const isAbove = data.value > data.average;
     const isBelow = data.value < data.average;
 
@@ -238,21 +310,27 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
     <div className="glass-card rounded-xl p-6 animate-slide-up" style={{ animationDelay: '300ms' }}>
       <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
         <div>
-          <span className="text-lg font-bold text-foreground mb-1">Relatório de gastos por mês</span>
+          <span className="text-lg font-bold text-foreground mb-1">
+            {isAnnualReport ? "Ranking Anual de Gastos" : "Relatório de gastos por mês"}
+          </span>
           <h3 className="text-sm font-medium text-muted-foreground">
-            {selectedMonth !== null ? `${data[selectedMonth].month} de ${selectedYear}` : `Ano de ${selectedYear}`}
+            {isAnnualReport
+              ? `Acumulado de ${selectedYear}`
+              : (internalMonth !== null ? `${data[internalMonth].month} de ${selectedYear}` : `Selecione um mês`)
+            }
           </h3>
         </div>
 
         <div className="flex items-center gap-4">
           <Select
-            value={selectedMonth !== null ? selectedMonth.toString() : ""}
-            onValueChange={(val) => onSelectMonth(parseInt(val))}
+            value={internalMonth !== null ? internalMonth.toString() : ""}
+            onValueChange={handleMonthChange}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Selecione o mês" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="-1">Relatório Anual</SelectItem>
               {availableMonths.map((month, index) => (
                 <SelectItem key={month.month} value={index.toString()}>
                   {month.month}
@@ -265,7 +343,7 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
 
       <div className="h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
-          {isMonthSelected ? (
+          {internalMonth !== null ? (
             <BarChart
               data={categoryChartData}
               layout="vertical"
@@ -280,6 +358,7 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
                 axisLine={false}
                 tickFormatter={(value) => `${(value / 1000).toFixed(1)}k`}
                 domain={[0, (dataMax: number) => {
+                  if (isAnnualReport) return dataMax * 1.1;
                   const maxAvg = Math.max(...categoryChartData.map(d => d.average));
                   return Math.max(dataMax, maxAvg) * 1.1;
                 }]}

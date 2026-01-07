@@ -3,6 +3,8 @@
 export interface Bank {
   id: string;
   name: string;
+  colorHex: string;
+  logoUrl: string;
 }
 
 export interface BankCreate {
