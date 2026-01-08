@@ -5,6 +5,8 @@ export interface Bank {
   name: string;
   colorHex: string;
   logoUrl: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface BankCreate {
