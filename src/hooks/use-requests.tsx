@@ -1,14 +1,12 @@
 import { apiRequest } from "../utils/apiRequests";
 
 // --- Interfaces ---
-
-// --- Interfaces ---
-import { Category } from "@/models/Category";
+import { Category, CategoryCreate } from "@/models/Category";
 import { Bank, BankCreate } from "@/models/Bank";
 import { Merchant } from "@/models/Merchant";
 import { PaymentCreate, PaymentResponse, PaymentFilters } from "@/models/Payment";
 
-export type { Category, Bank, BankCreate, Merchant, PaymentCreate, PaymentResponse, PaymentFilters };
+export type { Category, CategoryCreate, Bank, BankCreate, Merchant, PaymentCreate, PaymentResponse, PaymentFilters };
 
 // --- Requests ---
 
@@ -22,6 +20,10 @@ const getBanks = async () => {
 
 const createBank = async (payload: BankCreate) => {
   return await apiRequest<any>("banks/", "POST", payload as unknown as Record<string, unknown>);
+};
+
+const createCategory = async (payload: CategoryCreate) => {
+  return await apiRequest<any>("categories/", "POST", payload as unknown as Record<string, unknown>);
 };
 
 const createPayment = async (payload: PaymentCreate) => {
@@ -60,6 +62,7 @@ export const useRequests = () => ({
   getBanks,
   createPayment,
   createBank,
+  createCategory,
   searchMerchants,
   searchPayments,
 });

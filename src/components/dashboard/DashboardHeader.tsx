@@ -1,5 +1,5 @@
 import { financialData } from '@/data/financialData';
-import { BarChart3, Calendar, Search } from 'lucide-react';
+import { BarChart3, Calendar, Search, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
@@ -30,9 +30,6 @@ export function DashboardHeader({ selectedMonth, selectedYear, onSelectYear }: D
         <Link to="/register-payment">
           <Button variant="default" size="sm">Novo Pagamento</Button>
         </Link>
-        <Link to="/register-bank">
-          <Button variant="outline" size="sm">Novo Banco</Button>
-        </Link>
         <Link to="/search-payments">
           <Button variant="outline" size="sm" className="gap-2">
             <Search className="h-4 w-4" />
@@ -59,6 +56,12 @@ export function DashboardHeader({ selectedMonth, selectedYear, onSelectYear }: D
             </SelectContent>
           </Select>
         </div>
+
+        <Link to="/admin">
+          <Button variant="ghost" size="icon" title="Configurações">
+            <Settings className="h-5 w-5" />
+          </Button>
+        </Link>
       </div>
     </div>
   );

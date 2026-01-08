@@ -9,6 +9,7 @@ import {
 } from '@/data/financialData';
 import { CategoryData, MonthlyData } from '@/models/Financial';
 import { Category } from '@/models/Category';
+import { CategoryBadge } from '@/components/CategoryBadge';
 import { PaymentResponse } from '@/models/Payment';
 import { useRequests } from '@/hooks/use-requests';
 
@@ -170,13 +171,7 @@ export function CategoryTable({ selectedMonth, selectedYear, data }: CategoryTab
                   onClick={() => setSelectedCategory(item.key)}
                 >
                   <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: item.color }}
-                      />
-                      <span className="font-medium text-foreground">{item.name}</span>
-                    </div>
+                    <CategoryBadge category={{ name: item.name, colorHex: item.color }} />
                   </TableCell>
                   <TableCell className="text-right font-semibold text-foreground">
                     {formatCurrency(item.value)}

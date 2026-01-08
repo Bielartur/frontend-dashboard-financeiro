@@ -82,7 +82,7 @@ export function PaymentTable({
                     );
                   })()}
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="text-muted-foreground flex items-center gap-2">
                   <div
                     className="flex items-center justify-center w-9 h-9 rounded-md shrink-0 overflow-hidden bg-muted/20 border border-border/10 shadow-sm"
                     style={{ backgroundColor: payment.bank?.colorHex }}
