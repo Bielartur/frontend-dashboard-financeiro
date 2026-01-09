@@ -135,7 +135,7 @@ export function AdminTable<T extends { id: string; createdAt?: string; updatedAt
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          className="h-8 w-8 text-muted-foreground hover:text-secondary"
                           onClick={() => onEdit?.(item)}
                         >
                           <Pencil className="h-4 w-4" />
