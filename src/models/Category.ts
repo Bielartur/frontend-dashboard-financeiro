@@ -10,3 +10,7 @@ export interface CategoryCreate {
   name: string;
   colorHex: string;
 }
+export interface CategoryUpdate {
+  name?: string;
+  colorHex?: string;
+}
