@@ -11,6 +11,7 @@ import {
 import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/data/financialData';
+import { BankLogo } from '../BankLogo';
 
 interface PaymentTableProps {
   payments: PaymentResponse[];
@@ -83,16 +84,11 @@ export function PaymentTable({
                   })()}
                 </TableCell>
                 <TableCell className="text-muted-foreground flex items-center gap-2">
-                  <div
-                    className="flex items-center justify-center w-9 h-9 rounded-md shrink-0 overflow-hidden bg-muted/20 border border-border/10 shadow-sm"
-                    style={{ backgroundColor: payment.bank?.colorHex }}
-                  >
-                    <img
-                      src={payment.bank?.logoUrl || ''}
-                      alt={payment.bank?.name || ''}
-                      className="w-full h-full object-contain p-[0.4rem]"
-                    />
-                  </div>
+                  <BankLogo
+                    logoUrl={payment.bank?.logoUrl}
+                    name={payment.bank?.name || ''}
+                    colorHex={payment.bank?.colorHex}
+                  />
                 </TableCell>
                 <TableCell className="text-right font-semibold text-foreground">{formatCurrency(payment.amount)}</TableCell>
               </TableRow>

@@ -18,7 +18,7 @@ import { useRequests } from "@/hooks/use-requests";
 
 const CategorySchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
-  color_hex: z.string().regex(/^#[0-9A-F]{6}$/i, "Cor inválida"),
+  colorHex: z.string().regex(/^#[0-9A-F]{6}$/i, "Cor inválida"),
 });
 
 type CategoryFormValues = z.infer<typeof CategorySchema>;
@@ -36,7 +36,7 @@ export function RegisterCategory({ onSuccess, onCancel }: RegisterCategoryProps)
     resolver: zodResolver(CategorySchema),
     defaultValues: {
       name: "",
-      color_hex: "#000000",
+      colorHex: "#000000",
     },
   });
 
@@ -47,12 +47,13 @@ export function RegisterCategory({ onSuccess, onCancel }: RegisterCategoryProps)
       // as the backend does not support it yet, per user instruction.
       await api.createCategory({
         name: values.name,
+        colorHex: values.colorHex,
       });
 
       toast.success("Categoria cadastrada com sucesso!");
       form.reset({
         name: "",
-        color_hex: values.color_hex
+        colorHex: values.colorHex
       });
       onSuccess?.();
     } catch (error) {
@@ -82,7 +83,7 @@ export function RegisterCategory({ onSuccess, onCancel }: RegisterCategoryProps)
 
         <FormField
           control={form.control}
-          name="color_hex"
+          name="colorHex"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Cor da Categoria</FormLabel>

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,8 +38,8 @@ export function RegisterBankForm({ onSuccess, onCancel }: RegisterBankFormProps)
     resolver: zodResolver(BankSchema),
     defaultValues: {
       name: "",
-      color_hex: "#000000",
-      logo_url: "",
+      colorHex: "#000000",
+      logoUrl: "",
     },
   });
 
@@ -49,10 +48,8 @@ export function RegisterBankForm({ onSuccess, onCancel }: RegisterBankFormProps)
     try {
       await api.createBank({
         name: values.name,
-        color_hex: values.color_hex,
-        slug: generateSlug(values.name),
-        logo_url: values.logo_url || "https://placehold.co/600",
-        is_active: true,
+        colorHex: values.colorHex,
+        logoUrl: values.logoUrl || "https://placehold.co/600",
       });
 
       toast.success("Banco cadastrado com sucesso!");
@@ -87,7 +84,7 @@ export function RegisterBankForm({ onSuccess, onCancel }: RegisterBankFormProps)
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="color_hex"
+            name="colorHex"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Cor do Banco</FormLabel>
@@ -119,7 +116,7 @@ export function RegisterBankForm({ onSuccess, onCancel }: RegisterBankFormProps)
 
           <FormField
             control={form.control}
-            name="logo_url"
+            name="logoUrl"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>URL da Logo</FormLabel>
@@ -133,12 +130,12 @@ export function RegisterBankForm({ onSuccess, onCancel }: RegisterBankFormProps)
         </div>
 
         {/* Logo Preview */}
-        {form.watch("logo_url") && (
+        {form.watch("logoUrl") && (
           <div className="mt-6 flex flex-col items-center justify-center p-4 border rounded-lg bg-muted/20 border-dashed">
             <span className="text-sm text-muted-foreground mb-3">Prévia da Logo</span>
             <div className="relative w-24 h-24 flex items-center justify-center rounded-full shadow-sm overflow-hidden p-2">
               <img
-                src={form.watch("logo_url")}
+                src={form.watch("logoUrl")}
                 alt="Preview"
                 className="w-full h-full object-contain"
                 onError={(e) => {

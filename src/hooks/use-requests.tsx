@@ -1,12 +1,12 @@
 import { apiRequest } from "../utils/apiRequests";
 
 // --- Interfaces ---
-import { Category, CategoryCreate } from "@/models/Category";
-import { Bank, BankCreate } from "@/models/Bank";
+import { Category, CategoryCreate, CategoryUpdate } from "@/models/Category";
+import { Bank, BankCreate, BankUpdate } from "@/models/Bank";
 import { Merchant } from "@/models/Merchant";
 import { PaymentCreate, PaymentResponse, PaymentFilters } from "@/models/Payment";
 
-export type { Category, CategoryCreate, Bank, BankCreate, Merchant, PaymentCreate, PaymentResponse, PaymentFilters };
+export type { Category, CategoryCreate, CategoryUpdate, Bank, BankCreate, Merchant, PaymentCreate, PaymentResponse, PaymentFilters };
 
 // --- Requests ---
 
@@ -55,6 +55,24 @@ const searchPayments = async (filters: PaymentFilters) => {
   return await apiRequest<PaymentResponse[]>(`payments/search?${queryParams.toString()}`, "GET");
 };
 
+
+const updateCategory = async (id: string, payload: CategoryUpdate) => {
+  return await apiRequest<Category>(`categories/${id}`, "PUT", payload as unknown as Record<string, unknown>);
+};
+
+const deleteCategory = async (id: string) => {
+  return await apiRequest<void>(`categories/${id}`, "DELETE");
+};
+
+const updateBank = async (id: string, payload: BankUpdate) => {
+  return await apiRequest<Bank>(`banks/${id}`, "PUT", payload as unknown as Record<string, unknown>);
+};
+
+const deleteBank = async (id: string) => {
+  return await apiRequest<void>(`banks/${id}`, "DELETE");
+};
+
+
 // --- Hook Export ---
 
 export const useRequests = () => ({
@@ -63,6 +81,10 @@ export const useRequests = () => ({
   createPayment,
   createBank,
   createCategory,
+  updateCategory,
+  deleteCategory,
+  updateBank,
+  deleteBank,
   searchMerchants,
   searchPayments,
 });

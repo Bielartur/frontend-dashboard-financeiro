@@ -3,6 +3,7 @@
 export interface Bank {
   id: string;
   name: string;
+  slug: string;
   colorHex: string;
   logoUrl: string;
   createdAt?: string;
@@ -11,10 +12,15 @@ export interface Bank {
 
 export interface BankCreate {
   name: string;
-  color_hex: string;
-  logo_url: string;
-  slug: string;
-  is_active: boolean;
+  colorHex: string;
+  logoUrl: string;
+}
+
+export interface BankUpdate {
+  name?: string;
+  colorHex?: string;
+  logoUrl?: string;
+  isActive?: boolean;
 }
 
 
