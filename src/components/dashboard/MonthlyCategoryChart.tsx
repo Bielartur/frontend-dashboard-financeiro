@@ -1,11 +1,10 @@
 import { useMemo, useState, useEffect } from 'react';
+import { formatPeriodLabel, calculateYearForMonth } from '@/utils/formatters';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  categoryColors,
-  categoryLabels,
   formatCurrency,
 } from '@/data/financialData';
-import { CategoryData, MonthlyData } from '@/models/Financial';
+import { MonthlyData } from '@/models/Financial';
 import {
   BarChart,
   Bar,
@@ -19,29 +18,26 @@ import {
 interface MonthlyCategoryChartProps {
   selectedMonth: number | null;
   data: MonthlyData[];
-  selectedYear: number;
+  selectedYear: string;
   onSelectMonth: (month: number | null) => void;
 }
 
 interface CategoryChartItem {
   name: string;
-  category: keyof CategoryData;
+  category: string;
   value: number;
   base: number;
   excess: number;
   savings: number;
   average: number;
   fill: string;
+  status: 'above_average' | 'below_average' | 'average';
 }
 
 export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSelectMonth }: MonthlyCategoryChartProps) {
-  const categories = Object.keys(categoryLabels) as Array<keyof CategoryData>;
-
   // Internal state to handle "Annual Report" (-1) without affecting global selectedMonth
   const [internalMonth, setInternalMonth] = useState<number | null>(selectedMonth);
 
-  // Sync internal state when prop changes, unless we are in "Annual" view and want to stay there?
-  // Actually, standard behavior: if parent changes (e.g. from header), we should probably sync.
   useEffect(() => {
     setInternalMonth(selectedMonth);
   }, [selectedMonth]);
@@ -52,83 +48,80 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
   const handleMonthChange = (val: string) => {
     const newVal = parseInt(val);
     setInternalMonth(newVal);
-    // Only propagate to parent if it's a valid month, otherwise keep parent as is/null or don't call?
-    // If we want "Consistency", maybe we shouldn't allow the dashboard to be out of sync.
-    // But since the requirement is "option in THIS file", local state is safer to avoid breaking other charts.
     if (newVal !== -1) {
       onSelectMonth(newVal);
     }
   };
 
-  // Calculate available months based on current date
+  // Calculate available months based on data provided
   const availableMonths = useMemo(() => {
-    const currentYear = new Date().getFullYear();
-    const currentMonthIndex = new Date().getMonth();
+    // Just map the available data. 
+    // The parent ensures data is correct for the selected year/period.
+    return data;
+  }, [data]);
 
-    if (selectedYear < currentYear) {
-      return data; // All months available
-    } else if (selectedYear === currentYear) {
-      return data.slice(0, currentMonthIndex + 1); // Only up to current month
-    } else {
-      return []; // No months available for future years
-    }
-  }, [selectedYear, data]);
-
-  // Calculate average for each category (excluding selected month)
-  const categoryAverages = useMemo(() => {
-    if (!isMonthSelected || internalMonth === null) return {} as Record<keyof CategoryData, number>;
-
-    const averages = {} as Record<keyof CategoryData, number>;
-    categories.forEach((category) => {
-      const otherMonthsValues = data
-        .filter((_, index) => index !== internalMonth)
-        .map((month) => month.categories[category]);
-      averages[category] = otherMonthsValues.reduce((a, b) => a + b, 0) / otherMonthsValues.length;
-    });
-    return averages;
-  }, [internalMonth, isMonthSelected, data]);
 
   // Build category chart data
   const categoryChartData: CategoryChartItem[] = useMemo(() => {
     if (isAnnualReport) {
-      // Annual Totals
-      return categories.map(category => {
-        const totalValue = data.reduce((sum, month) => sum + month.categories[category], 0);
-        return {
-          name: categoryLabels[category],
-          category,
-          value: totalValue,
-          base: totalValue,
-          excess: 0,
-          savings: 0,
-          average: 0, // No average line for annual
-          fill: categoryColors[category],
-        };
-      }).sort((a, b) => b.value - a.value);
+      // Annual Totals - Need to aggregate since backend provides monthly breakdown
+      // For Annual, we don't have a "status" or "average" really, just total.
+      const categoryMap = new Map<string, CategoryChartItem>();
+
+      data.forEach(month => {
+        month.categories.forEach(cat => {
+          // Usually we show Expenses here
+          if (cat.type !== 'expense') return;
+
+          const existing = categoryMap.get(cat.slug);
+          if (existing) {
+            existing.value += Number(cat.total);
+            existing.base += Number(cat.total);
+          } else {
+            categoryMap.set(cat.slug, {
+              name: cat.name,
+              category: cat.slug,
+              value: Number(cat.total),
+              base: Number(cat.total),
+              excess: 0,
+              savings: 0,
+              average: 0,
+              fill: cat.colorHex,
+              status: 'average'
+            });
+          }
+        });
+      });
+      return Array.from(categoryMap.values()).sort((a, b) => b.value - a.value);
     }
 
-    if (!isMonthSelected || internalMonth === null) return [];
+    if (!isMonthSelected || internalMonth === null || !data[internalMonth]) return [];
 
-    return categories
-      .map((category) => {
-        const value = data[internalMonth].categories[category];
-        const average = categoryAverages[category];
+    const monthData = data[internalMonth];
+
+    // Convert CategoryMetric[] to ChartItem
+    return monthData.categories
+      .filter(cat => cat.type === 'expense') // Filter for expenses
+      .map((cat) => {
+        const value = Number(cat.total);
+        const average = Number(cat.average);
         const isAboveAverage = value > average;
         const isBelowAverage = value < average;
 
         return {
-          name: categoryLabels[category],
-          category,
+          name: cat.name,
+          category: cat.slug,
           value,
           base: isAboveAverage ? average : value,
           excess: isAboveAverage ? value - average : 0,
-          savings: isBelowAverage ? average - value : 0,
+          savings: isBelowAverage && average > 0 ? average - value : 0,
           average,
-          fill: categoryColors[category],
+          fill: cat.colorHex,
+          status: cat.status
         };
       })
       .sort((a, b) => b.value - a.value);
-  }, [internalMonth, isAnnualReport, isMonthSelected, categoryAverages, data]);
+  }, [internalMonth, isAnnualReport, isMonthSelected, data]);
 
   const CustomTooltipCategory = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -173,7 +166,7 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
               <span className="text-xs font-bold text-foreground">{formatCurrency(data.value)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-xs text-muted-foreground">Média (outros meses):</span>
+              <span className="text-xs text-muted-foreground">Média (12 meses):</span>
               <span className="text-xs text-muted-foreground">{formatCurrency(data.average)}</span>
             </div>
             <div className="flex justify-between pt-1 border-t border-border/50">
@@ -191,25 +184,15 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
     return null;
   };
 
-  // Custom bar shape that shows the average line
   const CustomBar = (props: any) => {
     const { x, y, width, height, payload } = props;
     if (!payload) return null;
 
     const data = payload as CategoryChartItem;
 
-    // For annual report, just show simple bar
-    if (data.average === 0) {
+    if (data.average === 0 || isAnnualReport) {
       return (
-        <rect
-          x={x}
-          y={y}
-          width={width}
-          height={height}
-          fill={data.fill}
-          rx={4}
-          ry={4}
-        />
+        <rect x={x} y={y} width={width} height={height} fill={data.fill} rx={4} ry={4} />
       );
     }
 
@@ -222,86 +205,22 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
 
     return (
       <g>
-        {/* Main bar - colored by category or split if above average */}
         {isAbove ? (
           <>
-            {/* Base portion up to average */}
-            <rect
-              x={x}
-              y={y}
-              width={avgPosition}
-              height={height}
-              fill={data.fill}
-              rx={0}
-              ry={0}
-            />
-            {/* Excess portion in red */}
-            <rect
-              x={x + avgPosition}
-              y={y}
-              width={width - avgPosition}
-              height={height}
-              fill="hsl(var(--expense))"
-              rx={4}
-              ry={4}
-            />
+            <rect x={x} y={y} width={avgPosition} height={height} fill={data.fill} rx={0} ry={0} />
+            <rect x={x + avgPosition} y={y} width={width - avgPosition} height={height} fill="hsl(var(--expense))" rx={4} ry={4} />
           </>
         ) : isBelow ? (
           <>
-            {/* Actual value bar */}
-            <rect
-              x={x}
-              y={y}
-              width={width}
-              height={height}
-              fill={data.fill}
-              rx={0}
-              ry={0}
-            />
-            {/* Savings portion in green (ghost bar showing what was saved) */}
-            <rect
-              x={x + width}
-              y={y}
-              width={avgPosition - width}
-              height={height}
-              fill="hsl(var(--income))"
-              opacity={0.4}
-              rx={4}
-              ry={4}
-              strokeDasharray="4 2"
-              stroke="hsl(var(--income))"
-              strokeWidth={1}
-            />
+            <rect x={x} y={y} width={width} height={height} fill={data.fill} rx={0} ry={0} />
+            <rect x={x + width} y={y} width={avgPosition - width} height={height} fill="hsl(var(--income))" opacity={0.4} rx={4} ry={4} strokeDasharray="4 2" stroke="hsl(var(--income))" strokeWidth={1} />
           </>
         ) : (
-          <rect
-            x={x}
-            y={y}
-            width={width}
-            height={height}
-            fill={data.fill}
-            rx={4}
-            ry={4}
-          />
+          <rect x={x} y={y} width={width} height={height} fill={data.fill} rx={4} ry={4} />
         )}
 
-        {/* Average reference line */}
-        <line
-          x1={x + avgPosition}
-          y1={y - 2}
-          x2={x + avgPosition}
-          y2={y + height + 2}
-          stroke="hsl(var(--foreground))"
-          strokeWidth={2}
-          strokeDasharray="4 2"
-          opacity={0.7}
-        />
-        {/* Small diamond marker at average */}
-        <polygon
-          points={`${x + avgPosition},${y - 4} ${x + avgPosition + 4},${y} ${x + avgPosition},${y + 4} ${x + avgPosition - 4},${y}`}
-          fill="hsl(var(--foreground))"
-          opacity={0.8}
-        />
+        <line x1={x + avgPosition} y1={y - 2} x2={x + avgPosition} y2={y + height + 2} stroke="hsl(var(--foreground))" strokeWidth={2} strokeDasharray="4 2" opacity={0.7} />
+        <polygon points={`${x + avgPosition},${y - 4} ${x + avgPosition + 4},${y} ${x + avgPosition},${y + 4} ${x + avgPosition - 4},${y}`} fill="hsl(var(--foreground))" opacity={0.8} />
       </g>
     );
   };
@@ -315,8 +234,8 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
           </span>
           <h3 className="text-sm font-medium text-muted-foreground">
             {isAnnualReport
-              ? `Acumulado de ${selectedYear}`
-              : (internalMonth !== null ? `${data[internalMonth].month} de ${selectedYear}` : `Selecione um mês`)
+              ? `Acumulado ${formatPeriodLabel(selectedYear, 'of')}`
+              : (internalMonth !== null && data[internalMonth] ? `${data[internalMonth].month} de ${data[internalMonth].year}` : `Selecione um mês`)
             }
           </h3>
         </div>
@@ -332,7 +251,7 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
             <SelectContent>
               <SelectItem value="-1">Relatório Anual</SelectItem>
               {availableMonths.map((month, index) => (
-                <SelectItem key={month.month} value={index.toString()}>
+                <SelectItem key={`${month.month}-${index}`} value={index.toString()}>
                   {month.month}
                 </SelectItem>
               ))}
@@ -343,7 +262,7 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
 
       <div className="h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
-          {internalMonth !== null ? (
+          {internalMonth !== null && (isAnnualReport || data[internalMonth]) ? (
             <BarChart
               data={categoryChartData}
               layout="vertical"

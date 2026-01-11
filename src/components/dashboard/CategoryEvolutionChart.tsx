@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { formatPeriodLabel } from '@/utils/formatters';
 import { Badge } from "@/components/ui/badge";
 import {
   Popover,
@@ -16,11 +17,9 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import {
-  categoryLabels,
-  categoryColors,
   formatCurrency,
 } from '@/data/financialData';
-import { MonthlyData, CategoryData } from '@/models/Financial';
+import { MonthlyData } from '@/models/Financial';
 import {
   LineChart,
   Line,
@@ -34,10 +33,10 @@ import { TrendingUp, Check, ChevronsUpDown, PlusCircle } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 interface CategoryEvolutionChartProps {
-  selectedCategories: Array<keyof CategoryData>;
+  selectedCategories: string[];
   data: MonthlyData[];
-  selectedYear: number;
-  onSelectCategories: (categories: Array<keyof CategoryData>) => void;
+  selectedYear: string;
+  onSelectCategories: (categories: string[]) => void;
 }
 
 export function CategoryEvolutionChart({
@@ -46,10 +45,24 @@ export function CategoryEvolutionChart({
   selectedYear,
   onSelectCategories,
 }: CategoryEvolutionChartProps) {
-  const categories = Object.keys(categoryLabels) as Array<keyof CategoryData>;
   const [open, setOpen] = useState(false);
 
-  const toggleCategory = (category: keyof CategoryData) => {
+  // Extract all unique categories from the data for the dropdown
+  const categoryMeta = useMemo(() => {
+    const meta = new Map<string, { name: string; color: string }>();
+    data.forEach(month => {
+      month.categories.forEach(cat => {
+        if (!meta.has(cat.slug)) {
+          meta.set(cat.slug, { name: cat.name, color: cat.colorHex });
+        }
+      });
+    });
+    return meta;
+  }, [data]);
+
+  const availableCategories = Array.from(categoryMeta.keys());
+
+  const toggleCategory = (category: string) => {
     if (selectedCategories.includes(category)) {
       onSelectCategories(selectedCategories.filter((c) => c !== category));
     } else {
@@ -63,18 +76,22 @@ export function CategoryEvolutionChart({
     const currentYear = new Date().getFullYear();
     const currentMonthIndex = new Date().getMonth();
 
-    // Map over all available months (assuming data has 12 months)
+    // Map over all available months
     return data.map((month, index) => {
       // Common logic for future handling
-      const isFuture = (selectedYear === currentYear && index > currentMonthIndex) || (selectedYear > currentYear);
+      const yearNum = selectedYear === 'last-12' ? -1 : parseInt(selectedYear);
+      // For last-12, all data is valid history/current. 
+      // For specific year, we might want to zero out future months.
+      const isFuture = selectedYear !== 'last-12' && yearNum === currentYear && index > currentMonthIndex;
 
       const monthData: any = {
         name: month.monthShort,
         fullMonth: month.month,
       };
 
-      selectedCategories.forEach(cat => {
-        monthData[cat] = isFuture ? 0 : month.categories[cat];
+      selectedCategories.forEach(catSlug => {
+        const catMetric = month.categories.find(c => c.slug === catSlug);
+        monthData[catSlug] = isFuture ? 0 : (catMetric?.total || 0);
       });
 
       return monthData;
@@ -88,7 +105,7 @@ export function CategoryEvolutionChart({
           <span className="text-lg font-bold text-foreground mb-1">Evolução anual por categoria</span>
           <p className="text-sm font-medium text-muted-foreground">
             {selectedCategories.length > 0
-              ? `${selectedCategories.length} categor(ias) selecionada(s) em ${selectedYear}`
+              ? `${selectedCategories.length} categor(ias) selecionada(s) ${formatPeriodLabel(selectedYear, 'in')}`
               : `Selecione categorias para comparar`}
           </p>
         </div>
@@ -106,7 +123,7 @@ export function CategoryEvolutionChart({
                 {selectedCategories.length > 0 && selectedCategories.length <= 2 ? (
                   selectedCategories.map((cat) => (
                     <Badge variant="secondary" key={cat} className="mr-1 bg-secondary/50 text-foreground font-normal border-none px-1.5 py-0 h-5">
-                      {categoryLabels[cat]}
+                      {categoryMeta.get(cat)?.name || cat}
                     </Badge>
                   ))
                 ) : (
@@ -126,7 +143,7 @@ export function CategoryEvolutionChart({
               <CommandList>
                 <CommandEmpty>Nenhuma categoria encontrada.</CommandEmpty>
                 <CommandGroup>
-                  {categories.map((category) => (
+                  {availableCategories.map((category) => (
                     <CommandItem
                       key={category}
                       onSelect={() => toggleCategory(category)}
@@ -142,7 +159,7 @@ export function CategoryEvolutionChart({
                       >
                         <Check className={cn("h-4 w-4")} />
                       </div>
-                      <span>{categoryLabels[category]}</span>
+                      <span>{categoryMeta.get(category)?.name || category}</span>
                     </CommandItem>
                   ))}
                 </CommandGroup>
@@ -218,8 +235,8 @@ export function CategoryEvolutionChart({
                   key={category}
                   type="monotone"
                   dataKey={category}
-                  name={categoryLabels[category]}
-                  stroke={categoryColors[category]}
+                  name={categoryMeta.get(category)?.name || category}
+                  stroke={categoryMeta.get(category)?.color || '#888888'}
                   strokeWidth={2}
                   dot={false}
                   activeDot={{ r: 4, strokeWidth: 0 }}
@@ -251,3 +268,4 @@ export function CategoryEvolutionChart({
     </div>
   );
 }
+

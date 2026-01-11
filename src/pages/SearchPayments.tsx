@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Search, Calendar as CalendarIcon, Filter } from "lucide-react";
+import { ArrowLeft, Search, Calendar as CalendarIcon, Filter, Plus, Download } from "lucide-react";
 import { ClearFilterButton } from "@/components/ClearFilterButton";
 import { format } from "date-fns";
 
@@ -16,11 +16,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { PaymentTable } from "@/components/dashboard/PaymentTable";
 import { cn } from "@/lib/utils";
+import { CreatePaymentModal } from "@/components/dashboard/CreatePaymentModal";
 
 const SearchPayments = () => {
   const api = useRequests();
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Modal State
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Filters State
   const [paymentMethod, setPaymentMethod] = useState("all");
@@ -107,6 +111,16 @@ const SearchPayments = () => {
               <h1 className="text-2xl font-bold tracking-tight">Buscar Pagamentos</h1>
               <p className="text-muted-foreground">Filtragem avançada de pagamentos</p>
             </div>
+          </div>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+              <Download className="h-4 w-4" />
+              Importar fatura
+            </Button>
+            <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Adicionar Pagamento
+            </Button>
           </div>
         </div>
 
@@ -252,6 +266,11 @@ const SearchPayments = () => {
           />
         </div>
       </div>
+
+      <CreatePaymentModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
     </div>
   );
 };

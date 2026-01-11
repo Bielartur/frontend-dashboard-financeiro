@@ -1,11 +1,9 @@
+import { useMemo } from 'react';
 import {
-  getAnnualCategoryTotals,
-  categoryColors,
-  categoryLabels,
   formatCurrency,
   formatPercent,
 } from '@/data/financialData';
-import { CategoryData, MonthlyData } from '@/models/Financial';
+import { MonthlyData } from '@/models/Financial';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface CategoryDonutChartProps {
@@ -14,19 +12,35 @@ interface CategoryDonutChartProps {
 }
 
 export function CategoryDonutChart({ selectedMonth, data }: CategoryDonutChartProps) {
-  const categoryTotals =
-    selectedMonth !== null
-      ? data[selectedMonth].categories
-      : getAnnualCategoryTotals(data);
+  // Aggregate data based on selection
+  const aggregatedCategories = useMemo(() => {
+    const categoryMap = new Map<string, { name: string; value: number; color: string }>();
 
-  const total = Object.values(categoryTotals).reduce((sum, value) => sum + value, 0);
+    const monthsToProcess = selectedMonth !== null ? [data[selectedMonth]] : data;
 
-  const chartData = (Object.keys(categoryTotals) as Array<keyof CategoryData>)
-    .map((key) => ({
-      name: categoryLabels[key],
-      value: categoryTotals[key],
-      color: categoryColors[key],
-      percent: categoryTotals[key] / total,
+    monthsToProcess.forEach(month => {
+      if (!month) return;
+      month.categories.forEach(cat => {
+        // Filter for EXPENSES only for the donut chart to make sense
+        if (cat.type !== 'expense') return;
+
+        const current = categoryMap.get(cat.slug) || { name: cat.name, value: 0, color: cat.colorHex };
+        current.value += Number(cat.total);
+        categoryMap.set(cat.slug, current);
+      });
+    });
+
+    return Array.from(categoryMap.values());
+  }, [selectedMonth, data]);
+
+  const total = aggregatedCategories.reduce((sum, item) => sum + item.value, 0);
+
+  const chartData = aggregatedCategories
+    .map((item) => ({
+      name: item.name,
+      value: item.value,
+      color: item.color,
+      percent: total > 0 ? item.value / total : 0,
     }))
     .sort((a, b) => b.value - a.value);
 

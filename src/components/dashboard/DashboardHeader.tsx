@@ -1,4 +1,3 @@
-import { financialData } from '@/data/financialData';
 import { BarChart3, Calendar, Search, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../ui/button';
@@ -6,8 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 interface DashboardHeaderProps {
   selectedMonth: number | null;
-  selectedYear: number;
-  onSelectYear: (year: number) => void;
+  selectedYear: string;
+  onSelectYear: (year: string) => void;
 }
 
 export function DashboardHeader({ selectedMonth, selectedYear, onSelectYear }: DashboardHeaderProps) {
@@ -27,7 +26,7 @@ export function DashboardHeader({ selectedMonth, selectedYear, onSelectYear }: D
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <Link to="/register-payment">
+        <Link to="/search-payments">
           <Button variant="default" size="sm">Novo Pagamento</Button>
         </Link>
         <Link to="/search-payments">
@@ -40,19 +39,20 @@ export function DashboardHeader({ selectedMonth, selectedYear, onSelectYear }: D
         <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary/50 border border-border/50">
           <Calendar className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium text-foreground mr-1">
-            Relatório anual
+            Período
           </span>
           <Select
-            value={selectedYear.toString()}
-            onValueChange={(val) => onSelectYear(parseInt(val))}
+            value={selectedYear}
+            onValueChange={onSelectYear}
           >
-            <SelectTrigger className="w-[80px] h-6 border-none bg-transparent p-0 focus:ring-0 text-sm font-medium text-foreground">
+            <SelectTrigger className="w-[140px] h-6 border-none bg-transparent p-0 focus:ring-0 text-sm font-medium text-foreground">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="2024">2024</SelectItem>
               <SelectItem value="2025">2025</SelectItem>
               <SelectItem value="2026">2026</SelectItem>
+              <SelectItem value="last-12">Últimos 12 meses</SelectItem>
             </SelectContent>
           </Select>
         </div>

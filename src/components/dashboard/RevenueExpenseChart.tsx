@@ -1,4 +1,4 @@
-import { financialData, formatCurrency } from '@/data/financialData';
+import { formatCurrency } from '@/data/financialData';
 import { MonthlyData } from '@/models/Financial';
 import {
   LineChart,
