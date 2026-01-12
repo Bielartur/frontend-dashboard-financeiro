@@ -6,8 +6,9 @@ import { Bank, BankCreate, BankUpdate } from "@/models/Bank";
 import { Merchant } from "@/models/Merchant";
 import { PaymentCreate, PaymentResponse, PaymentFilters, PaymentImportResponse } from "@/models/Payment";
 import { DashboardAvailableMonth, DashboardResponse } from "@/models/Financial";
+import { PaginatedResponse } from "@/models/Pagination";
 
-export type { Category, CategoryCreate, CategoryUpdate, Bank, BankCreate, Merchant, PaymentCreate, PaymentResponse, PaymentFilters, PaymentImportResponse, DashboardResponse };
+export type { Category, CategoryCreate, CategoryUpdate, Bank, BankCreate, Merchant, PaymentCreate, PaymentResponse, PaymentFilters, PaymentImportResponse, DashboardResponse, PaginatedResponse };
 
 // --- Requests ---
 
@@ -51,6 +52,7 @@ const searchPayments = async (filters: PaymentFilters) => {
 
   if (filters.query) queryParams.append("query", filters.query);
   if (filters.limit) queryParams.append("limit", filters.limit.toString());
+  if (filters.page) queryParams.append("page", filters.page.toString()); // Support page
   if (filters.paymentMethod && filters.paymentMethod !== "all") queryParams.append("payment_method", filters.paymentMethod);
   if (filters.categoryId && filters.categoryId !== "all") queryParams.append("category_id", filters.categoryId);
   if (filters.bankId && filters.bankId !== "all") queryParams.append("bank_id", filters.bankId);
@@ -61,7 +63,7 @@ const searchPayments = async (filters: PaymentFilters) => {
   if (filters.minAmount) queryParams.append("min_amount", filters.minAmount.toString());
   if (filters.maxAmount) queryParams.append("max_amount", filters.maxAmount.toString());
 
-  return await apiRequest<PaymentResponse[]>(`payments/search?${queryParams.toString()}`, "GET");
+  return await apiRequest<PaginatedResponse<PaymentResponse>>(`payments/search?${queryParams.toString()}`, "GET");
 };
 
 

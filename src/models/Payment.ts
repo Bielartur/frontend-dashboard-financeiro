@@ -51,6 +51,7 @@ export interface PaymentFilters {
   endDate?: Date;
   minAmount?: number;
   maxAmount?: number;
+  page?: number;
 }
 
 

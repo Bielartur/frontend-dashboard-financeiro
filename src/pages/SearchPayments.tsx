@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Search, Calendar as CalendarIcon, Filter, Plus, Download } from "lucide-react";
 import { ClearFilterButton } from "@/components/ClearFilterButton";
@@ -8,7 +8,6 @@ import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRequests } from "@/hooks/use-requests";
-import { PaymentResponse } from "@/models/Payment";
 import { Category } from "@/models/Category";
 import { Bank } from "@/models/Bank";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -27,6 +26,7 @@ const SearchPayments = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Filters State
+  const [page, setPage] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState("all");
   const [categoryId, setCategoryId] = useState("all");
   const [bankId, setBankId] = useState("all");
@@ -39,9 +39,15 @@ const SearchPayments = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm);
+      setPage(1); // Reset page on search
     }, 200);
     return () => clearTimeout(timer);
   }, [searchTerm]);
+
+  // Reset page on filter change
+  useEffect(() => {
+    setPage(1);
+  }, [paymentMethod, categoryId, bankId, startDate, endDate, minAmount, maxAmount]);
 
   // Fetch filters data
   const { data: categories = [] } = useQuery<Category[]>({
@@ -55,10 +61,11 @@ const SearchPayments = () => {
   });
 
   // Fetch Payments with Filters
-  const { data: payments = [], isLoading } = useQuery<PaymentResponse[]>({
+  const { data: paymentsData, isLoading, isFetching } = useQuery({
     queryKey: [
       "payments-search",
       debouncedSearch,
+      page,
       paymentMethod,
       categoryId,
       bankId,
@@ -69,7 +76,8 @@ const SearchPayments = () => {
     ],
     queryFn: () => api.searchPayments({
       query: debouncedSearch,
-      limit: 20,
+      page,
+      limit: 8,
       paymentMethod,
       categoryId,
       bankId,
@@ -78,7 +86,11 @@ const SearchPayments = () => {
       minAmount: minAmount ? parseFloat(minAmount) : undefined,
       maxAmount: maxAmount ? parseFloat(maxAmount) : undefined,
     }),
+    placeholderData: keepPreviousData
   });
+
+  const payments = paymentsData?.items || [];
+  const totalPages = paymentsData?.pages || 1;
 
 
 
@@ -262,9 +274,12 @@ const SearchPayments = () => {
         <div className="space-y-4">
           <PaymentTable
             payments={payments}
-            isLoading={isLoading}
+            isLoading={isFetching}
             emptyMessage="Nenhum pagamento encontrado."
             showCategory={true}
+            totalPages={totalPages}
+            currentPage={page}
+            onPageChange={setPage}
           />
         </div>
       </div>
