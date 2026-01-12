@@ -1,73 +1,63 @@
-# Welcome to your Lovable project
+# Dashboard Financeiro (Frontend)
 
-## Project info
+Este é o frontend da aplicação de Dashboard Financeiro, desenvolvido para oferecer uma interface moderna e responsiva para o controle de finanças pessoais.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 🚀 Tecnologias Utilizadas
 
-## How can I edit this code?
+Este projeto foi construído com as seguintes tecnologias:
 
-There are several ways of editing your application.
+- **[Vite](https://vitejs.dev/)**: Build tool e servidor de desenvolvimento ultra-rápido.
+- **[React](https://react.dev/)**: Biblioteca para construção de interfaces de usuário.
+- **[TypeScript](https://www.typescriptlang.org/)**: Superset do JavaScript que adiciona tipagem estática.
+- **[Tailwind CSS](https://tailwindcss.com/)**: Framework de CSS utility-first.
+- **[shadcn/ui](https://ui.shadcn.com/)**: Coleção de componentes de UI reutilizáveis.
+- **[Recharts](https://recharts.org/)**: Biblioteca para gráficos compostáveis.
+- **[Bun](https://bun.sh/)**: Runtime, gerenciador de pacotes e test runner.
 
-**Use Lovable**
+## 📦 Pré-requisitos
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+Antes de começar, certifique-se de ter instalado em sua máquina:
 
-Changes made via Lovable will be committed automatically to this repo.
+- **[Node.js](https://nodejs.org/)** (versão 18 ou superior recomendada)
+- **[Bun](https://bun.sh/)** (para gerenciamento de pacotes e execução)
 
-**Use your preferred IDE**
+## 🛠️ Instalação
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1. Clone o repositório:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```bash
+git clone https://github.com/Bielartur/frontend-dashboard-financeiro.git
+cd frontend-dashboard-financeiro
 ```
 
-**Edit a file directly in GitHub**
+2. Instale as dependências utilizando o Bun:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+bun install
+```
 
-**Use GitHub Codespaces**
+## ▶️ Executando o Projeto
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Para rodar o servidor de desenvolvimento localmente:
 
-## What technologies are used for this project?
+```bash
+bun run dev
+```
 
-This project is built with:
+O servidor iniciará geralmente em `http://localhost:8080` (verifique o terminal).
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🏗️ Build de Produção
 
-## How can I deploy this project?
+Para gerar o bundle de produção otimizado:
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+```bash
+bun run build
+```
 
-## Can I connect a custom domain to my Lovable project?
+## 🔌 Backend
 
-Yes, you can!
+Este frontend consome uma API REST. Certifique-se de que o backend (FastAPI/Python) esteja rodando em paralelo para que os dados sejam carregados corretamente.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+---
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Desenvolvido com ❤️ para gestão financeira eficiente.
