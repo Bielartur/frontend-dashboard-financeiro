@@ -19,7 +19,13 @@ import { BaseModal } from "../BaseModal";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CategorySchema, CategoryFormValues } from "@/models/schemas/CategorySchema";
 
 interface CreateCategoryModalProps {
@@ -38,6 +44,7 @@ export function CreateCategoryModal({ isOpen, onClose }: CreateCategoryModalProp
     defaultValues: {
       name: "",
       colorHex: "#000000",
+      type: "expense",
     },
   });
 
@@ -47,6 +54,7 @@ export function CreateCategoryModal({ isOpen, onClose }: CreateCategoryModalProp
       await api.createCategory({
         name: values.name,
         colorHex: values.colorHex,
+        type: values.type,
       });
 
       toast({
@@ -57,7 +65,8 @@ export function CreateCategoryModal({ isOpen, onClose }: CreateCategoryModalProp
       await queryClient.invalidateQueries({ queryKey: ["categories"] });
       form.reset({
         name: "",
-        colorHex: values.colorHex
+        colorHex: values.colorHex,
+        type: "expense",
       });
       onClose();
     } catch (error) {
@@ -90,6 +99,31 @@ export function CreateCategoryModal({ isOpen, onClose }: CreateCategoryModalProp
                 <FormControl>
                   <Input placeholder="Ex: Alimentação" {...field} />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo de Categoria</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="expense">Despesa</SelectItem>
+                    <SelectItem value="income">Receita</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}

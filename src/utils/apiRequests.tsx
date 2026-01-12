@@ -34,12 +34,14 @@ const AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJnYWJyaWVsY2F
 export async function apiRequest<T>(
     endpoint: string,
     method: HttpMethod = "GET",
-    data: Record<string, unknown> = {},
+    data: Record<string, unknown> | FormData = {},
     withAuth: boolean = true
 ): Promise<T> {
-    const headers: AxiosRequestConfig["headers"] = {
-        "Content-Type": "application/json",
-    };
+    const headers: AxiosRequestConfig["headers"] = {};
+
+    if (!(data instanceof FormData)) {
+        headers["Content-Type"] = "application/json";
+    }
 
     if (withAuth) {
         // Use the hardcoded token as primary for now since the auth flow isn't fully set up with login

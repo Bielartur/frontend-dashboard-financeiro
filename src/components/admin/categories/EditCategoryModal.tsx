@@ -17,6 +17,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { CategorySchema } from "@/models/schemas/CategorySchema";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface EditCategoryModalProps {
   category: Category | null;
@@ -36,6 +43,7 @@ export function EditCategoryModal({
     defaultValues: {
       name: "",
       colorHex: "#000000",
+      type: "expense",
     },
   });
 
@@ -44,6 +52,7 @@ export function EditCategoryModal({
       form.reset({
         name: category.name,
         colorHex: category.colorHex,
+        type: category.type as "expense" | "income",
       });
     }
   }, [category, form]);
@@ -76,6 +85,32 @@ export function EditCategoryModal({
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="expense">Despesa</SelectItem>
+                    <SelectItem value="income">Receita</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="colorHex"

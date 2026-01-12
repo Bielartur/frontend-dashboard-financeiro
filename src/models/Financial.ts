@@ -31,3 +31,9 @@ export interface DashboardResponse {
   months: MonthlyData[];
 }
 
+
+export interface DashboardAvailableMonth {
+  year: number;
+  month: number;
+  label: string;
+}

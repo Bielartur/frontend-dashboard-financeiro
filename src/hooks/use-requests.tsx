@@ -4,10 +4,10 @@ import { apiRequest } from "../utils/apiRequests";
 import { Category, CategoryCreate, CategoryUpdate } from "@/models/Category";
 import { Bank, BankCreate, BankUpdate } from "@/models/Bank";
 import { Merchant } from "@/models/Merchant";
-import { PaymentCreate, PaymentResponse, PaymentFilters } from "@/models/Payment";
-import { DashboardResponse } from "@/models/Financial";
+import { PaymentCreate, PaymentResponse, PaymentFilters, PaymentImportResponse } from "@/models/Payment";
+import { DashboardAvailableMonth, DashboardResponse } from "@/models/Financial";
 
-export type { Category, CategoryCreate, CategoryUpdate, Bank, BankCreate, Merchant, PaymentCreate, PaymentResponse, PaymentFilters, DashboardResponse };
+export type { Category, CategoryCreate, CategoryUpdate, Bank, BankCreate, Merchant, PaymentCreate, PaymentResponse, PaymentFilters, PaymentImportResponse, DashboardResponse };
 
 // --- Requests ---
 
@@ -29,6 +29,14 @@ const createCategory = async (payload: CategoryCreate) => {
 
 const createPayment = async (payload: PaymentCreate) => {
   return await apiRequest<any>("payments/", "POST", payload as unknown as Record<string, unknown>);
+};
+
+const updatePayment = async (id: string, payload: PaymentCreate) => {
+  return await apiRequest<PaymentResponse>(`payments/${id}`, "PUT", payload as unknown as Record<string, unknown>);
+};
+
+const deletePayment = async (id: string) => {
+  return await apiRequest<void>(`payments/${id}`, "DELETE");
 };
 
 const searchMerchants = async (query: string) => {
@@ -73,11 +81,25 @@ const deleteBank = async (id: string) => {
   return await apiRequest<void>(`banks/${id}`, "DELETE");
 };
 
+const importPayments = async (file: File, source: string) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  return await apiRequest<PaymentImportResponse[]>(`payments/import/${source}`, "POST", formData);
+};
+
+const createPaymentsBulk = async (payments: PaymentCreate[]) => {
+  return await apiRequest<PaymentResponse[]>("payments/bulk", "POST", payments as unknown as Record<string, unknown>);
+};
+
 
 
 const getDashboard = async (year: string = 'last-12') => {
   const queryYear = year === 'last-12' ? 'last-12' : year;
   return await apiRequest<DashboardResponse>(`dashboard/?year=${queryYear}`, "GET");
+};
+
+const getAvailableMonths = async () => {
+  return await apiRequest<DashboardAvailableMonth[]>("dashboard/available-months", "GET");
 };
 
 // --- Hook Export ---
@@ -86,6 +108,8 @@ export const useRequests = () => ({
   getCategories,
   getBanks,
   createPayment,
+  updatePayment,
+  deletePayment,
   createBank,
   createCategory,
   updateCategory,
@@ -94,5 +118,8 @@ export const useRequests = () => ({
   deleteBank,
   searchMerchants,
   searchPayments,
+  importPayments,
+  createPaymentsBulk,
   getDashboard,
+  getAvailableMonths,
 });

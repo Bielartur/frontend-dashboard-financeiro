@@ -10,6 +10,7 @@ export interface PaymentCreate {
   paymentMethod: "pix" | "credit_card" | "debit_card" | "other";
   bankId: string;
   categoryId?: string | null;
+  hasMerchant?: boolean;
 }
 
 export interface PaymentResponse {
@@ -24,6 +25,20 @@ export interface PaymentResponse {
   bank?: Bank;
   merchant?: Merchant;
   category?: Category;
+}
+
+export interface PaymentImportResponse {
+  date: string;
+  title: string;
+  amount: number;
+  category?: {
+    id: string;
+    slug: string;
+    name: string;
+    type: string;
+  };
+  hasMerchant?: boolean;
+  alreadyExists?: boolean;
 }
 
 export interface PaymentFilters {

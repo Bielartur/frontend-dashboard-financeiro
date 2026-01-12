@@ -37,6 +37,7 @@ export function useDashboard(year: string = 'last-12') {
     data,
     isLoading,
     error,
-    refresh
+    refresh,
+    getAvailableMonths: useRequests().getAvailableMonths
   };
 }
