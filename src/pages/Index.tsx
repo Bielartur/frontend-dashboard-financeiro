@@ -14,21 +14,39 @@ const Index = () => {
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>("last-12");
+  const [availableMonthsList, setAvailableMonthsList] = useState<{ year: number, month: number, label: string }[]>([]);
 
-  const { data: dashboardData, isLoading, error, refresh } = useDashboard(selectedYear);
+  const { data: dashboardData, isLoading, error, refresh, getAvailableMonths } = useDashboard(selectedYear);
+
+  useEffect(() => {
+    // Fetch available months on mount
+    getAvailableMonths().then(data => {
+      setAvailableMonthsList(data);
+      if (data.length > 0 && selectedYear === 'last-12') {
+        // Maybe default to the year of the last data?
+        // For now, let's keep 'last-12' as default unless explicit requirement to change YEAR on load.
+        // But the requirement is "mês padrão ... sim o último mês com dados"
+        // If monthsData is populated, we select the last one.
+      }
+    });
+  }, []);
 
   const monthsData = dashboardData?.months || [];
 
   // Update selected month when data or year changes
   useEffect(() => {
     if (monthsData.length > 0) {
-      // Default to the last available month (usually current or Dec)
-      // or specifically logic for last-12 could be different
+      // Default to the last available month in the CURRENT data set
       if (selectedMonth === null || selectedMonth >= monthsData.length) {
         setSelectedMonth(monthsData.length - 1);
       }
+    } else {
+      setSelectedMonth(null);
     }
   }, [monthsData.length, selectedYear]);
+
+  // Create available years list
+  const availableYears = Array.from(new Set(availableMonthsList.map(m => m.year))).sort((a, b) => b - a);
 
 
   const currentMonthData =
@@ -93,6 +111,9 @@ const Index = () => {
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
             onSelectYear={setSelectedYear}
+            onSelectMonth={(idx) => setSelectedMonth(idx === -1 ? null : idx)}
+            monthsWithData={monthsData.map(m => ({ month: m.month, year: m.year }))}
+            availableYears={availableYears}
           />
 
           {/* Summary Cards */}

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { PaymentResponse } from '@/models/Payment';
 import { getPaymentMethodIcon } from '@/utils/payment-icons';
 import {
@@ -8,10 +9,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Edit, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/data/financialData';
 import { BankLogo } from '../BankLogo';
+import { CategoryBadge } from '../CategoryBadge';
+import { Button } from '@/components/ui/button';
+import { EditPaymentModal } from './EditPaymentModal';
+import { ConfirmDeleteModal } from '@/components/admin/ConfirmDeleteModal';
+import { useRequests } from '@/hooks/use-requests';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface PaymentTableProps {
   payments: PaymentResponse[];
@@ -26,6 +34,30 @@ export function PaymentTable({
   emptyMessage = "Nenhum pagamento encontrado para esta categoria.",
   showCategory = false
 }: PaymentTableProps) {
+  const [editingPayment, setEditingPayment] = useState<PaymentResponse | null>(null);
+  const [deletingPaymentId, setDeletingPaymentId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const api = useRequests();
+  const queryClient = useQueryClient();
+
+  const handleDelete = async () => {
+    if (!deletingPaymentId) return;
+    setIsDeleting(true);
+    try {
+      await api.deletePayment(deletingPaymentId);
+      toast.success("Pagamento excluído com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["payments-search"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      setDeletingPaymentId(null);
+    } catch (error) {
+      console.error("Failed to delete payment:", error);
+      toast.error("Erro ao excluir pagamento.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="relative">
       {isLoading && (
@@ -45,18 +77,19 @@ export function PaymentTable({
             <TableHead className="text-muted-foreground font-semibold">Forma de pagamento</TableHead>
             <TableHead className="text-muted-foreground font-semibold">Banco</TableHead>
             <TableHead className="text-muted-foreground font-semibold text-right">Valor</TableHead>
+            <TableHead className="text-muted-foreground font-semibold text-center w-[100px]">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {payments.length === 0 && !isLoading ? (
             <TableRow>
-              <TableCell colSpan={showCategory ? 6 : 5} className="text-center py-8 text-muted-foreground">
+              <TableCell colSpan={showCategory ? 7 : 6} className="text-center py-8 text-muted-foreground">
                 {emptyMessage}
               </TableCell>
             </TableRow>
           ) : (
             payments.map((payment) => (
-              <TableRow key={payment.id} className="border-border/30 hover:bg-secondary/30 transition-colors">
+              <TableRow key={payment.id} className="border-border/30 hover:bg-secondary/30 transition-colors group">
                 <TableCell className="text-muted-foreground">
                   {format(new Date(payment.date), 'dd/MM/yyyy')}
                 </TableCell>
@@ -64,9 +97,7 @@ export function PaymentTable({
                 {showCategory && (
                   <TableCell>
                     {payment.category && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-md bg-secondary text-secondary-foreground text-xs font-medium">
-                        {payment.category.name}
-                      </span>
+                      <CategoryBadge variant="subtle" category={payment.category} />
                     )}
                   </TableCell>
                 )}
@@ -91,6 +122,16 @@ export function PaymentTable({
                   />
                 </TableCell>
                 <TableCell className="text-right font-semibold text-foreground">{formatCurrency(payment.amount)}</TableCell>
+                <TableCell className="text-center">
+                  <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => setEditingPayment(payment)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setDeletingPaymentId(payment.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
               </TableRow>
             ))
           )}
@@ -99,9 +140,27 @@ export function PaymentTable({
             <TableCell className="text-right font-bold text-expense">
               {formatCurrency(payments.reduce((sum, payment) => sum + Number(payment.amount), 0))}
             </TableCell>
+            <TableCell />
           </TableRow>
         </TableBody>
       </Table>
+
+      {editingPayment && (
+        <EditPaymentModal
+          isOpen={!!editingPayment}
+          onClose={() => setEditingPayment(null)}
+          payment={editingPayment}
+        />
+      )}
+
+      <ConfirmDeleteModal
+        isOpen={!!deletingPaymentId}
+        onClose={() => setDeletingPaymentId(null)}
+        onConfirm={handleDelete}
+        isLoading={isDeleting}
+        title="Excluir Pagamento"
+        description="Tem certeza que deseja excluir este pagamento? Esta ação não pode ser desfeita."
+      />
     </div>
   );
 }

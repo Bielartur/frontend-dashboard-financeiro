@@ -113,10 +113,12 @@ const SearchPayments = () => {
             </div>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setIsCreateModalOpen(true)} className="gap-2">
-              <Download className="h-4 w-4" />
-              Importar fatura
-            </Button>
+            <Link to="/import-payments">
+              <Button variant="outline" className="gap-2">
+                <Download className="h-4 w-4" />
+                Importar fatura
+              </Button>
+            </Link>
             <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
               <Plus className="h-4 w-4" />
               Adicionar Pagamento
