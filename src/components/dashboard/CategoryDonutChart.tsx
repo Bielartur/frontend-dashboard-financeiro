@@ -63,7 +63,7 @@ export function CategoryDonutChart({ selectedMonth, data }: CategoryDonutChartPr
   return (
     <div className="glass-card rounded-xl p-6 animate-slide-up" style={{ animationDelay: '400ms' }}>
       <h3 className="text-lg font-semibold text-foreground mb-6">
-        {selectedMonth !== null
+        {selectedMonth !== null && data[selectedMonth]
           ? `Distribuição - ${data[selectedMonth].month}`
           : 'Distribuição Anual por Categoria'}
       </h3>
