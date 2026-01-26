@@ -1,4 +1,4 @@
-import { CreditCard, QrCode, Banknote, Barcode, FileText, TrendingDown } from "lucide-react";
+import { CreditCard, QrCode, Banknote, Barcode, FileText, TrendingUp} from "lucide-react";
 
 export type PaymentMethodType = "pix" | "credit_card" | "debit_card" | "other";
 
@@ -42,8 +42,8 @@ export const paymentMethodIcons: Record<string, PaymentIconConfig> = {
     colorClass: "text-indigo-500",
   },
   investment_redemption: {
-    icon: TrendingDown,
-    colorClass: "text-red-600",
+    icon: TrendingUp,
+    colorClass: "text-green-600",
   },
   other: {
     icon: Banknote,

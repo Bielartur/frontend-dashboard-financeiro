@@ -32,8 +32,16 @@ export function CategoryList({ onAddClick }: CategoryListProps) {
 
   const handleSave = async (id: string, data: any) => {
     try {
-      await api.updateCategory(id, data);
+      // Update Global Data (Name)
+      await api.updateCategory(id, { name: data.name });
+
+      // Update User Settings (Alias, Color)
+      if (data.alias || data.colorHex) {
+        await api.updateCategorySettings(id, { alias: data.alias, colorHex: data.colorHex });
+      }
+
       await queryClient.invalidateQueries({ queryKey: ["categories"] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboard"] }); // Refresh dashboard too as colors/names change
       toast.success("Categoria atualizada com sucesso!");
     } catch (error) {
       console.error("Failed to update category:", error);
@@ -114,6 +122,7 @@ export function CategoryList({ onAddClick }: CategoryListProps) {
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSave={handleSave}
+        mode="admin"
       />
 
       <ConfirmDeleteModal

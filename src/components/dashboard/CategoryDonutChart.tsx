@@ -5,6 +5,7 @@ import {
 } from '@/data/financialData';
 import { MonthlyData } from '@/models/Financial';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { EmptyDashboardState } from './EmptyDashboardState';
 
 interface CategoryDonutChartProps {
   selectedMonth: number | null;
@@ -25,7 +26,7 @@ export function CategoryDonutChart({ selectedMonth, data }: CategoryDonutChartPr
         if (cat.type !== 'expense') return;
 
         const current = categoryMap.get(cat.slug) || { name: cat.name, value: 0, color: cat.colorHex };
-        current.value += Number(cat.total);
+        current.value += Math.abs(Number(cat.total));
         categoryMap.set(cat.slug, current);
       });
     });
@@ -34,6 +35,7 @@ export function CategoryDonutChart({ selectedMonth, data }: CategoryDonutChartPr
   }, [selectedMonth, data]);
 
   const total = aggregatedCategories.reduce((sum, item) => sum + item.value, 0);
+  const hasData = total > 0;
 
   const chartData = aggregatedCategories
     .map((item) => ({
@@ -67,47 +69,51 @@ export function CategoryDonutChart({ selectedMonth, data }: CategoryDonutChartPr
           ? `Distribuição - ${data[selectedMonth].month}`
           : 'Distribuição Anual por Categoria'}
       </h3>
-      <div className="flex flex-col lg:flex-row items-center gap-6">
-        <div className="h-[250px] w-full lg:w-1/2">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={chartData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={2}
-                dataKey="value"
-              >
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} stroke="transparent" />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="w-full lg:w-1/2 grid grid-cols-2 gap-2">
-          {chartData.slice(0, 10).map((item) => (
-            <div
-              key={item.name}
-              className="flex items-center gap-2 p-2 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
-            >
+      {!hasData ? (
+        <EmptyDashboardState height="h-[250px]" />
+      ) : (
+        <div className="flex flex-col lg:flex-row items-center gap-6">
+          <div className="h-[250px] w-full lg:w-1/2">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={2}
+                  dataKey="value"
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} stroke="transparent" />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="w-full lg:w-1/2 grid grid-cols-2 gap-2">
+            {chartData.slice(0, 10).map((item) => (
               <div
-                className="w-3 h-3 rounded-full flex-shrink-0"
-                style={{ backgroundColor: item.color }}
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs text-muted-foreground truncate">{item.name}</p>
-                <p className="text-xs font-semibold text-foreground">
-                  {formatPercent(item.percent)}
-                </p>
+                key={item.name}
+                className="flex items-center gap-2 p-2 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
+              >
+                <div
+                  className="w-3 h-3 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: item.color }}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-muted-foreground truncate">{item.name}</p>
+                  <p className="text-xs font-semibold text-foreground">
+                    {formatPercent(item.percent)}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

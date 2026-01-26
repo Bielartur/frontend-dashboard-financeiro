@@ -46,7 +46,11 @@ const Index = () => {
   }, [monthsData.length, selectedYear]);
 
   // Create available years list
-  const availableYears = Array.from(new Set(availableMonthsList.map(m => m.year))).sort((a, b) => b - a);
+  const availableYears = Array.from(new Set(availableMonthsList.map(m => m.year))).filter(y => y).sort((a, b) => b - a);
+
+  // Auto-switch to latest year if "last-12" is empty but we have data in specific years
+  // This handles the case where users have data (e.g. Jan 2025) but "last-12" (Feb 2025-Jan 2026) is empty.
+  // Auto-switch removed in favor of backend "smart last-12" logic
 
 
   const currentMonthData =
@@ -99,6 +103,18 @@ const Index = () => {
     );
   }
 
+  // Calculate range label for display
+  let dataRangeLabel = "";
+  if (monthsData.length > 0) {
+    const first = monthsData[0];
+    const last = monthsData[monthsData.length - 1];
+    if (first.year === last.year) {
+      dataRangeLabel = `Dados de ${first.year}`;
+    } else {
+      dataRangeLabel = `${first.monthShort}/${first.year} - ${last.monthShort}/${last.year}`;
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Background gradient */}
@@ -114,7 +130,11 @@ const Index = () => {
             onSelectMonth={(idx) => setSelectedMonth(idx === -1 ? null : idx)}
             monthsWithData={monthsData.map(m => ({ month: m.month, year: m.year }))}
             availableYears={availableYears}
+            dataRangeLabel={dataRangeLabel}
           />
+
+
+
 
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Category, CategoryUpdate } from "@/models/Category";
+import { Category, CategoryUpdate, CategorySettingsUpdate } from "@/models/Category";
 import { BaseModal } from "../BaseModal";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
@@ -25,11 +25,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+// Create a separate schema for personal settings if needed, or refine CategorySchema
+// For now, we will make fields optional/required based on usage in the form logic or just reuse strict schema and fill defaults?
+// Better to check which fields are actually rendered. The Schema currently requires name/type/colorHex.
+// For Personal mode, we don't edit Name/Type. We edit Alias/Color.
+// Let's adjust validation or just fill hidden fields with current values.
+
 interface EditCategoryModalProps {
   category: Category | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (id: string, data: CategoryUpdate) => Promise<void>;
+  onSave: (id: string, data: any) => Promise<void>; // data typed as any to handle both update types flexibly here, or union
+  mode: 'admin' | 'personal';
 }
 
 export function EditCategoryModal({
@@ -37,13 +44,14 @@ export function EditCategoryModal({
   isOpen,
   onClose,
   onSave,
+  mode
 }: EditCategoryModalProps) {
   const form = useForm<z.infer<typeof CategorySchema>>({
     resolver: zodResolver(CategorySchema),
     defaultValues: {
       name: "",
+      alias: "",
       colorHex: "#000000",
-      type: "expense",
     },
   });
 
@@ -51,66 +59,98 @@ export function EditCategoryModal({
     if (category) {
       form.reset({
         name: category.name,
+        alias: category.alias || "",
         colorHex: category.colorHex,
-        type: category.type as "expense" | "income",
       });
     }
   }, [category, form]);
 
   const handleSubmit = async (values: z.infer<typeof CategorySchema>) => {
     if (!category) return;
-    await onSave(category.id, values);
+
+    if (mode === 'admin') {
+      // Admin saves Name, Type, Color (Global)
+      // We ignore Alias here
+      const payload: CategoryUpdate = {
+        name: values.name,
+        colorHex: values.colorHex,
+      };
+      await onSave(category.id, payload);
+    } else {
+      // Personal saves Alias, Color (Personal)
+      // Name and Type are ignored (or sent but validation on backend for settings endpoint ignores them)
+      // Actually, the onSave callback in ProfilePage will call updateCategorySettings which expects { alias, colorHex }
+      const payload: CategorySettingsUpdate = {
+        alias: values.alias,
+        colorHex: values.colorHex,
+      };
+      await onSave(category.id, payload);
+    }
+
     onClose();
   };
 
   return (
     <BaseModal
-      title="Editar Categoria"
-      description="Faça alterações na categoria aqui. Clique em salvar quando terminar."
+      title={mode === 'admin' ? "Editar Categoria (Global)" : "Editar Categoria (Pessoal)"}
+      description={mode === 'admin'
+        ? "Alterações aqui afetam todos os usuários."
+        : "Personalize como você vê esta categoria."}
       isOpen={isOpen}
       onClose={onClose}
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nome</FormLabel>
-                <FormControl>
-                  <Input placeholder="Nome da categoria" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
 
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+          {mode === 'admin' && (
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome Oficial</FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo" />
-                    </SelectTrigger>
+                    <Input placeholder="Nome da categoria" {...field} />
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="expense">Despesa</SelectItem>
-                    <SelectItem value="income">Receita</SelectItem>
-                    <SelectItem value="neutral">Neutra</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {mode === 'personal' && (
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome Oficial (Original)</FormLabel>
+                  <FormControl>
+                    <Input {...field} disabled className="bg-muted" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {mode === 'personal' && (
+            <FormField
+              control={form.control}
+              name="alias"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Apelido (Para você)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: Gasto Pessoal" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+
 
           <FormField
             control={form.control}

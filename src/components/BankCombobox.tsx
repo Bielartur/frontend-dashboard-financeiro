@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronsUpDown, PlusCircle } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,20 +9,18 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Category } from "@/models/Category";
-import { CategoryBadge } from "@/components/CategoryBadge";
-import { Badge } from "./ui/badge";
+import { Bank } from "@/models/Bank";
+import { BankLogo } from "@/components/BankLogo";
 
-interface CategoryComboboxProps {
+interface BankComboboxProps {
   value?: string;
-  categories: Category[];
+  banks: Bank[];
   onChange: (value: string) => void;
   placeholder?: string;
   emptyText?: string;
@@ -32,17 +30,17 @@ interface CategoryComboboxProps {
   };
 }
 
-export function CategoryCombobox({
+export function BankCombobox({
   value,
-  categories,
+  banks,
   onChange,
-  placeholder = "Selecione uma categoria",
-  emptyText = "Nenhuma categoria encontrada.",
+  placeholder = "Selecione um banco",
+  emptyText = "Nenhum banco encontrado.",
   extraOption,
-}: CategoryComboboxProps) {
+}: BankComboboxProps) {
   const [open, setOpen] = useState(false);
 
-  const selectedCategory = categories.find((c) => c.id === value);
+  const selectedBank = banks.find((b) => b.id === value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -53,8 +51,16 @@ export function CategoryCombobox({
           aria-expanded={open}
           className="w-full justify-between h-9 px-3 font-normal"
         >
-          {selectedCategory ? (
-            <CategoryBadge category={selectedCategory} />
+          {selectedBank ? (
+            <div className="flex items-center gap-2">
+              <BankLogo
+                name={selectedBank.name}
+                logoUrl={selectedBank.logoUrl}
+                colorHex={selectedBank.colorHex}
+                className="w-5 h-5"
+              />
+              <span className="truncate">{selectedBank.name}</span>
+            </div>
           ) : extraOption && value === extraOption.value ? (
             <span className="truncate">{extraOption.label}</span>
           ) : (
@@ -65,9 +71,10 @@ export function CategoryCombobox({
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0" align="start">
         <Command>
-          <CommandInput placeholder="Buscar categoria..." />
+          <CommandInput placeholder="Buscar banco..." />
           <CommandList>
             <CommandEmpty>{emptyText}</CommandEmpty>
+
             {extraOption && (
               <CommandGroup>
                 <CommandItem
@@ -93,33 +100,39 @@ export function CategoryCombobox({
               </CommandGroup>
             )}
 
-            {/* Fallback: List all categories flat since type is not reliable */}
             <CommandGroup>
-              {categories.map((category) => (
+              {banks.map((bank) => (
                 <CommandItem
-                  key={category.id}
-                  value={category.name} // Use name for search/filter
-                  keywords={[category.name]}
+                  key={bank.id}
+                  value={bank.name}
+                  keywords={[bank.name]}
                   onSelect={() => {
-                    onChange(category.id);
+                    onChange(bank.id);
                     setOpen(false);
                   }}
                 >
                   <div
                     className={cn(
                       "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                      value === category.id
+                      value === bank.id
                         ? "bg-primary text-primary-foreground"
                         : "opacity-50 [&_svg]:invisible"
                     )}
                   >
                     <Check className={cn("h-4 w-4")} />
                   </div>
-                  <CategoryBadge category={category} />
+                  <div className="flex items-center gap-2">
+                    <BankLogo
+                      name={bank.name}
+                      logoUrl={bank.logoUrl}
+                      colorHex={bank.colorHex}
+                      className="w-8 h-8"
+                    />
+                    <span>{bank.name}</span>
+                  </div>
                 </CommandItem>
               ))}
             </CommandGroup>
-
           </CommandList>
         </Command>
       </PopoverContent>

@@ -5,8 +5,8 @@ export const PaymentSchema = z.object({
   date: z.date({
     required_error: "A data é obrigatória",
   }),
-  amount: z.coerce.number().min(0.01, "O valor deve ser maior que zero"),
-  paymentMethod: z.enum(["pix", "credit_card", "debit_card", "other"], {
+  amount: z.coerce.number(),
+  paymentMethod: z.enum(["pix", "credit_card", "debit_card", "investment_redemption", "bill_payment", "boleto", "other"], {
     required_error: "Selecione um método de pagamento",
   }),
   bankId: z.string().refine((val) => val !== "none" && val !== "", {

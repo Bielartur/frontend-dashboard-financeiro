@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
+import { EmptyDashboardState } from './EmptyDashboardState';
 
 interface RevenueExpenseChartProps {
   selectedMonth: number | null;
@@ -36,7 +37,7 @@ export function RevenueExpenseChart({ selectedMonth, data }: RevenueExpenseChart
           filled.push({
             name: existing.monthShort,
             receita: Number(existing.revenue),
-            gastos: Number(existing.expenses)
+            gastos: Math.abs(Number(existing.expenses))
           });
         } else {
           filled.push({
@@ -53,9 +54,11 @@ export function RevenueExpenseChart({ selectedMonth, data }: RevenueExpenseChart
     return data.map((month) => ({
       name: month.monthShort,
       receita: Number(month.revenue),
-      gastos: Number(month.expenses),
+      gastos: Math.abs(Number(month.expenses)),
     }));
   }, [data]);
+
+  const hasData = data.length > 0;
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -81,51 +84,55 @@ export function RevenueExpenseChart({ selectedMonth, data }: RevenueExpenseChart
           : 'Evolução Mensal: Receita vs Gastos'}
       </h3>
       <div className="h-[300px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={filledData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-            <XAxis
-              dataKey="name"
-              stroke="hsl(var(--muted-foreground))"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-            />
-            <YAxis
-              stroke="hsl(var(--muted-foreground))"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => `${(value / 1000).toFixed(0)} k`}
-              padding={{ top: 30 }}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend
-              wrapperStyle={{ paddingTop: '20px' }}
-              formatter={(value) => (
-                <span className="text-sm text-muted-foreground capitalize">{value}</span>
-              )}
-            />
-            <Line
-              type="monotone"
-              dataKey="receita"
-              name="Receita"
-              stroke="hsl(var(--income))"
-              strokeWidth={3}
-              dot={{ fill: 'hsl(var(--income))', strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6, strokeWidth: 0 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="gastos"
-              name="Gastos"
-              stroke="hsl(var(--expense))"
-              strokeWidth={3}
-              dot={{ fill: 'hsl(var(--expense))', strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6, strokeWidth: 0 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        {!hasData ? (
+          <EmptyDashboardState height="h-full" />
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={filledData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+              <XAxis
+                dataKey="name"
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value) => `${(value / 1000).toFixed(0)} k`}
+                padding={{ top: 30 }}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend
+                wrapperStyle={{ paddingTop: '20px' }}
+                formatter={(value) => (
+                  <span className="text-sm text-muted-foreground capitalize">{value}</span>
+                )}
+              />
+              <Line
+                type="monotone"
+                dataKey="receita"
+                name="Receita"
+                stroke="hsl(var(--income))"
+                strokeWidth={3}
+                dot={{ fill: 'hsl(var(--income))', strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, strokeWidth: 0 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="gastos"
+                name="Gastos"
+                stroke="hsl(var(--expense))"
+                strokeWidth={3}
+                dot={{ fill: 'hsl(var(--expense))', strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, strokeWidth: 0 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );

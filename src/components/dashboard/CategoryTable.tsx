@@ -159,50 +159,57 @@ export function CategoryTable({ selectedMonth, selectedYear, data }: CategoryTab
     if (isAnnual) {
       // Aggregate all months
       const categoryMap = new Map<string, TableItem>();
-      let totalVal = 0;
+      let totalAnnualId = 0; // Total absolute volume for percentage calculation
 
       data.forEach(month => {
         month.categories.forEach(cat => {
-          if (cat.type !== 'expense') return; // Only expenses in table usually? Or let's show all? Dashboard is usually expenses.
+          if (cat.type !== 'expense') return;
 
+          const absVal = Math.abs(Number(cat.total));
           const existing = categoryMap.get(cat.slug);
+
           if (existing) {
-            existing.value += Number(cat.total);
+            existing.value += absVal;
           } else {
             categoryMap.set(cat.slug, {
               key: cat.slug,
               name: cat.name,
-              value: Number(cat.total),
+              value: absVal,
               color: cat.colorHex,
               percent: 0,
-              status: 'average' // Annual status doesn't make sense or is average
+              status: 'average'
             });
           }
-          totalVal += Number(cat.total);
+          totalAnnualId += absVal;
         });
       });
 
-      // Calculate percents
+      // Calculate percents and sort
       return Array.from(categoryMap.values()).map(item => ({
         ...item,
-        percent: totalVal > 0 ? item.value / totalVal : 0
+        percent: totalAnnualId > 0 ? item.value / totalAnnualId : 0
       })).sort((a, b) => b.value - a.value);
 
     } else {
       // Specific Month
       if (!data[selectedMonth]) return [];
+
       const monthCats = data[selectedMonth].categories.filter(c => c.type === 'expense');
-      const monthTotal = monthCats.reduce((sum, c) => sum + Number(c.total), 0);
 
+      // Calculate total ABSOLUTE value for percentages
+      const monthTotal = monthCats.reduce((sum, c) => sum + Math.abs(Number(c.total)), 0);
 
-      return monthCats.map(cat => ({
-        key: cat.slug,
-        name: cat.name,
-        value: cat.total,
-        color: cat.colorHex,
-        percent: monthTotal > 0 ? cat.total / monthTotal : 0,
-        status: cat.status
-      })).sort((a, b) => b.value - a.value);
+      return monthCats.map(cat => {
+        const absValue = Math.abs(Number(cat.total));
+        return {
+          key: cat.slug,
+          name: cat.name,
+          value: absValue,
+          color: cat.colorHex,
+          percent: monthTotal > 0 ? absValue / monthTotal : 0,
+          status: cat.status
+        };
+      }).sort((a, b) => b.value - a.value);
     }
   }, [selectedMonth, data]);
 
