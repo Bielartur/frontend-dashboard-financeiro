@@ -31,6 +31,7 @@ import {
 } from 'recharts';
 import { TrendingUp, Check, ChevronsUpDown, PlusCircle } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { EmptyDashboardState } from './EmptyDashboardState';
 
 interface CategoryEvolutionChartProps {
   selectedCategories: string[];
@@ -61,6 +62,7 @@ export function CategoryEvolutionChart({
   }, [data]);
 
   const availableCategories = Array.from(categoryMeta.keys());
+  const hasData = availableCategories.length > 0;
 
   const toggleCategory = (category: string) => {
     if (selectedCategories.includes(category)) {
@@ -117,7 +119,7 @@ export function CategoryEvolutionChart({
       filledData.forEach(month => {
         month.categories?.forEach(cat => {
           if (cat.type === 'expense') {
-            totals.set(cat.slug, (totals.get(cat.slug) || 0) + Number(cat.total));
+            totals.set(cat.slug, (totals.get(cat.slug) || 0) + Math.abs(Number(cat.total)));
           }
         });
       });
@@ -154,7 +156,7 @@ export function CategoryEvolutionChart({
       selectedCategories.forEach(catSlug => {
         // Need to check if categories exists (mock object has empty list)
         const catMetric = month.categories?.find(c => c.slug === catSlug);
-        monthData[catSlug] = isFuture ? 0 : Number(catMetric?.total || 0);
+        monthData[catSlug] = isFuture ? 0 : Math.abs(Number(catMetric?.total || 0));
       });
 
       return monthData;
@@ -180,6 +182,7 @@ export function CategoryEvolutionChart({
               role="combobox"
               aria-expanded={open}
               className="w-[250px] justify-between h-10 px-3 text-left font-normal"
+              disabled={!hasData}
             >
               <div className="flex gap-1 flex-wrap truncate">
                 {selectedCategories.length === 0 && "Selecione categorias"}
@@ -246,7 +249,9 @@ export function CategoryEvolutionChart({
       </div>
 
       <div className="h-[300px]">
-        {selectedCategories.length > 0 ? (
+        {!hasData ? (
+          <EmptyDashboardState height="h-full" />
+        ) : selectedCategories.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} vertical={false} />
@@ -332,4 +337,3 @@ export function CategoryEvolutionChart({
     </div>
   );
 }
-

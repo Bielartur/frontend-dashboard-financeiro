@@ -39,6 +39,8 @@ import { Merchant } from "@/models/Merchant";
 import { BaseModal } from "@/components/admin/BaseModal";
 import { MerchantSelect } from "./MerchantSelect";
 import { CategoryCombobox } from "@/components/CategoryCombobox";
+import { BankCombobox } from "@/components/BankCombobox";
+import { PaymentMethodCombobox } from "@/components/PaymentMethodCombobox";
 
 interface CreatePaymentModalProps {
   isOpen: boolean;
@@ -266,19 +268,13 @@ export function CreatePaymentModal({ isOpen, onClose, onSuccess }: CreatePayment
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Forma de Pagamento</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o método" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="pix">Pix</SelectItem>
-                    <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
-                    <SelectItem value="debit_card">Cartão de Débito</SelectItem>
-                    <SelectItem value="other">Outro</SelectItem>
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <PaymentMethodCombobox
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Selecione o método"
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -291,23 +287,15 @@ export function CreatePaymentModal({ isOpen, onClose, onSuccess }: CreatePayment
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Banco</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um banco" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">
-                        Selecione um banco
-                      </SelectItem>
-                      {banks.map((bank) => (
-                        <SelectItem key={bank.id} value={bank.id}>
-                          {bank.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <BankCombobox
+                      value={field.value}
+                      banks={banks}
+                      onChange={field.onChange}
+                      placeholder="Selecione um banco"
+                      emptyText="Nenhum banco encontrado."
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -323,7 +311,6 @@ export function CreatePaymentModal({ isOpen, onClose, onSuccess }: CreatePayment
                     value={field.value}
                     categories={categories}
                     onChange={field.onChange}
-                    showUncategorized={false}
                     extraOption={{
                       value: "none",
                       label: `Categoria sugerida (${selectedMerchant?.categoryId ? categories.find((category) => category.id === selectedMerchant.categoryId)?.name : "Nenhuma"})`

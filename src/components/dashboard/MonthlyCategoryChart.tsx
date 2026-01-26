@@ -1,6 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { formatPeriodLabel, calculateYearForMonth } from '@/utils/formatters';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatPeriodLabel } from '@/utils/formatters';
 import { MonthCombobox } from '@/components/MonthCombobox';
 import {
   formatCurrency,
@@ -15,6 +14,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { EmptyDashboardState } from './EmptyDashboardState';
 
 interface MonthlyCategoryChartProps {
   selectedMonth: number | null;
@@ -60,6 +60,14 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
     return data;
   }, [data]);
 
+  // Check if we have data to show
+  const hasData = useMemo(() => {
+    if (isAnnualReport) {
+      return data.some(m => m.categories.length > 0);
+    }
+    return internalMonth !== null && data[internalMonth] && data[internalMonth].categories.length > 0;
+  }, [isAnnualReport, internalMonth, data]);
+
 
   // Build category chart data
   const categoryChartData: CategoryChartItem[] = useMemo(() => {
@@ -75,14 +83,14 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
 
           const existing = categoryMap.get(cat.slug);
           if (existing) {
-            existing.value += Number(cat.total);
-            existing.base += Number(cat.total);
+            existing.value += Math.abs(Number(cat.total));
+            existing.base += Math.abs(Number(cat.total));
           } else {
             categoryMap.set(cat.slug, {
               name: cat.name,
               category: cat.slug,
-              value: Number(cat.total),
-              base: Number(cat.total),
+              value: Math.abs(Number(cat.total)),
+              base: Math.abs(Number(cat.total)),
               excess: 0,
               savings: 0,
               average: 0,
@@ -103,8 +111,8 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
     return monthData.categories
       .filter(cat => cat.type === 'expense') // Filter for expenses
       .map((cat) => {
-        const value = Number(cat.total);
-        const average = Number(cat.average);
+        const value = Math.abs(Number(cat.total));
+        const average = Math.abs(Number(cat.average));
         const isAboveAverage = value > average;
         const isBelowAverage = value < average;
 
@@ -252,49 +260,53 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
       </div>
 
       <div className="h-[350px]">
-        <ResponsiveContainer width="100%" height="100%">
-          {(isAnnualReport || (internalMonth !== null && data[internalMonth])) ? (
-            <BarChart
-              data={categoryChartData}
-              layout="vertical"
-              margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} horizontal={true} vertical={false} />
-              <XAxis
-                type="number"
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(value) => `${(value / 1000).toFixed(1)}k`}
-                domain={[0, (dataMax: number) => {
-                  if (isAnnualReport) return dataMax * 1.1;
-                  const maxAvg = Math.max(...categoryChartData.map(d => d.average));
-                  return Math.max(dataMax, maxAvg) * 1.1;
-                }]}
-              />
-              <YAxis
-                type="category"
-                dataKey="name"
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={11}
-                tickLine={false}
-                axisLine={false}
-                width={90}
-              />
-              <Tooltip content={<CustomTooltipCategory />} cursor={{ fill: 'hsl(var(--muted)/0.1)' }} />
-              <Bar
-                dataKey="value"
-                shape={<CustomBar />}
-                isAnimationActive={true}
-              />
-            </BarChart>
-          ) : (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
-              Selecione um mês para visualizar o relatório.
-            </div>
-          )}
-        </ResponsiveContainer>
+        {!hasData ? (
+          <EmptyDashboardState height="h-full" />
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            {(isAnnualReport || (internalMonth !== null && data[internalMonth])) ? (
+              <BarChart
+                data={categoryChartData}
+                layout="vertical"
+                margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} horizontal={true} vertical={false} />
+                <XAxis
+                  type="number"
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(value) => `${(value / 1000).toFixed(1)}k`}
+                  domain={[0, (dataMax: number) => {
+                    if (isAnnualReport) return dataMax * 1.1;
+                    const maxAvg = Math.max(...categoryChartData.map(d => d.average));
+                    return Math.max(dataMax, maxAvg) * 1.1;
+                  }]}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                  width={90}
+                />
+                <Tooltip content={<CustomTooltipCategory />} cursor={{ fill: 'hsl(var(--muted)/0.1)' }} />
+                <Bar
+                  dataKey="value"
+                  shape={<CustomBar />}
+                  isAnimationActive={true}
+                />
+              </BarChart>
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                Selecione um mês para visualizar o relatório.
+              </div>
+            )}
+          </ResponsiveContainer>
+        )}
       </div>
     </div >
   );

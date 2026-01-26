@@ -44,7 +44,6 @@ export function CreateCategoryModal({ isOpen, onClose }: CreateCategoryModalProp
     defaultValues: {
       name: "",
       colorHex: "#000000",
-      type: "expense",
     },
   });
 
@@ -54,7 +53,6 @@ export function CreateCategoryModal({ isOpen, onClose }: CreateCategoryModalProp
       await api.createCategory({
         name: values.name,
         colorHex: values.colorHex,
-        type: values.type,
       });
 
       toast({
@@ -66,7 +64,6 @@ export function CreateCategoryModal({ isOpen, onClose }: CreateCategoryModalProp
       form.reset({
         name: "",
         colorHex: values.colorHex,
-        type: "expense",
       });
       onClose();
     } catch (error) {
@@ -104,31 +101,7 @@ export function CreateCategoryModal({ isOpen, onClose }: CreateCategoryModalProp
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo de Categoria</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="expense">Despesa</SelectItem>
-                    <SelectItem value="income">Receita</SelectItem>
-                    <SelectItem value="neutral">Neutra</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+
 
           <FormField
             control={form.control}

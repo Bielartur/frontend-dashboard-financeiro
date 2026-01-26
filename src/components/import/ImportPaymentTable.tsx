@@ -102,7 +102,7 @@ export function ImportPaymentTable({
 
             const filteredCategories = categories.filter((c) => {
               // Exclude system categories
-              if (c.slug === "pagamento-de-fatura" || c.slug === "resgate-de-investimento") {
+              if (c.slug === "pagamento-de-fatura") {
                 return false;
               }
 

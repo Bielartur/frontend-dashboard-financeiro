@@ -16,6 +16,7 @@ import { Bank } from "@/models/Bank";
 import { Category } from "@/models/Category";
 import { PaymentImportResponse, PaymentCreate } from "@/models/Payment";
 import { ImportPaymentTable } from "@/components/import/ImportPaymentTable";
+import { BankCombobox } from "@/components/BankCombobox";
 import { toast } from "sonner";
 
 const ImportPayments = () => {
@@ -135,10 +136,11 @@ const ImportPayments = () => {
         id: p.id,
         title: p.title,
         date: p.date,
-        amount: Math.abs(p.amount), // Backend expects positive value
+        amount: p.amount, // Allow signed values
         bankId: selectedBank,
         categoryId: p.category!.id, // Safe assertion due to validation above
-        hasMerchant: p.hasMerchant
+        hasMerchant: p.hasMerchant,
+        paymentMethod: p.paymentMethod?.value as any // Type assertion to match PaymentCreate
       }));
 
       await api.createPaymentsBulk(paymentsToCreate, importType);
@@ -178,18 +180,13 @@ const ImportPayments = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
             <div className="space-y-2">
               <label className="text-sm font-medium">Banco</label>
-              <Select value={selectedBank} onValueChange={setSelectedBank}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o banco" />
-                </SelectTrigger>
-                <SelectContent>
-                  {supportedBanks.map((bank) => (
-                    <SelectItem key={bank.id} value={bank.id}>
-                      {bank.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <BankCombobox
+                value={selectedBank}
+                banks={supportedBanks}
+                onChange={setSelectedBank}
+                placeholder="Selecione o banco"
+                emptyText="Nenhum banco encontrado."
+              />
             </div>
 
             <div className="space-y-2">
