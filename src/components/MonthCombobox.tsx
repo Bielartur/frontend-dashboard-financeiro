@@ -97,30 +97,45 @@ export function MonthCombobox({
 
             <CommandSeparator />
 
-            <CommandGroup heading="Meses disponíveis">
-              {months.map((month, index) => (
-                <CommandItem
-                  key={`${month.month}-${month.year}-${index}`}
-                  value={`${month.month} ${month.year}`} // Combining for search
-                  onSelect={() => {
-                    onSelectMonth(index);
-                    setOpen(false);
-                  }}
-                >
-                  <div
-                    className={cn(
-                      "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                      (!isAnnual && selectedMonth === index)
-                        ? "bg-primary text-primary-foreground"
-                        : "opacity-50 [&_svg]:invisible"
-                    )}
-                  >
-                    <Check className={cn("h-4 w-4")} />
-                  </div>
-                  <span>{month.month}</span>
-                </CommandItem>
+            {/* Groups by Year */}
+            {Array.from(new Set(months.map((m) => m.year)))
+              .sort((a, b) => b - a)
+              .map((year) => (
+                <CommandGroup key={year} heading={year.toString()}>
+                  {[...months]
+                    .map((m, i) => ({ ...m, originalIndex: i }))
+                    .filter((m) => m.year === year)
+                    .sort((a, b) => {
+                      // We can assume original data is sorted appropriately or just rely on index order if it's chronological.
+                      // But to be safe and consistent with previous request of "most recent first":
+                      // If the original array is ascending (Jan -> Dec), we want to reverse it.
+                      // Using originalIndex b - a achieves reverse chronological if input is chronological.
+                      return b.originalIndex - a.originalIndex;
+                    })
+                    .map((month) => (
+                      <CommandItem
+                        key={`${month.month}-${month.year}-${month.originalIndex}`}
+                        value={`${month.month} ${month.year}`}
+                        onSelect={() => {
+                          onSelectMonth(month.originalIndex);
+                          setOpen(false);
+                        }}
+                      >
+                        <div
+                          className={cn(
+                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                            !isAnnual && selectedMonth === month.originalIndex
+                              ? "bg-primary text-primary-foreground"
+                              : "opacity-50 [&_svg]:invisible"
+                          )}
+                        >
+                          <Check className={cn("h-4 w-4")} />
+                        </div>
+                        <span>{month.month}</span>
+                      </CommandItem>
+                    ))}
+                </CommandGroup>
               ))}
-            </CommandGroup>
           </CommandList>
         </Command>
       </PopoverContent>

@@ -26,7 +26,7 @@ export function BankLogo({ logoUrl, name, colorHex, className }: BankLogoProps) 
         alt={name}
         className={cn(
           "w-full h-full object-contain",
-          isTransparent ? "p-[0.4rem]" : "p-0"
+          isTransparent ? "p-[20%]" : "p-0"
         )}
       />
     </div>

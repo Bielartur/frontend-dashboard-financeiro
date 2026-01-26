@@ -7,7 +7,7 @@ import type { ApiError } from "../models/Api";
 // We will grab the token from localStorage if available, or just use the hardcoded one if we decide to keep it there.
 // For now, let's assume we want to support the previous hardcoded token or a token passed in.
 
-const BASE_URL = "http://localhost:8000";
+export const BASE_URL = "http://localhost:8000";
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -29,7 +29,7 @@ function normalizeAxiosError(error: unknown): ApiError {
 }
 
 // Simple token storage for now (can be replaced by HelpersToken if we keep it)
-const AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJnYWJyaWVsY2FudG8yMDE2QGdtYWlsLmNvbSIsImlkIjoiZWM5NjE2ZDktNWM4NC00NjE3LTg4MmQtY2QzMDVjNTFjMzcwIiwiZXhwIjoxNzcwMDYzNjUzfQ.qsWmgQD7ZrLfYmonOoJ1pUKXjnJPWEGCI4luLcJB_Mo";
+export const AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJnYWJyaWVsY2FudG8yMDE2QGdtYWlsLmNvbSIsImlkIjoiZWM5NjE2ZDktNWM4NC00NjE3LTg4MmQtY2QzMDVjNTFjMzcwIiwiZXhwIjoxNzcwMDYzNjUzfQ.qsWmgQD7ZrLfYmonOoJ1pUKXjnJPWEGCI4luLcJB_Mo";
 
 export async function apiRequest<T>(
     endpoint: string,
