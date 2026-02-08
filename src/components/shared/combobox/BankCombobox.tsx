@@ -16,7 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Bank } from "@/models/Bank";
-import { BankLogo } from "@/components/BankLogo";
+import { BankLogo } from "@/components/shared/BankLogo";
 
 interface BankComboboxProps {
   value?: string;

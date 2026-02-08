@@ -17,7 +17,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Category } from "@/models/Category";
-import { CategoryBadge } from "@/components/CategoryBadge";
+import { CategoryBadge } from "@/components/shared/CategoryBadge";
 import { Badge } from "./ui/badge";
 
 interface CategoryComboboxProps {
