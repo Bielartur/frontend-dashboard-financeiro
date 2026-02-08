@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-export const PaymentSchema = z.object({
+export const TransactionSchema = z.object({
   title: z.string().min(1, "O título é obrigatório"),
   date: z.date({
     required_error: "A data é obrigatória",
   }),
   amount: z.coerce.number(),
-  paymentMethod: z.enum(["pix", "credit_card", "debit_card", "investment_redemption", "bill_payment", "boleto", "other"], {
+  paymentMethod: z.enum(["pix", "credit_card", "debit_card", "bank_transfer", "cash", "investment_redemption", "bill_payment", "boleto", "other"], {
     required_error: "Selecione um método de pagamento",
   }),
   bankId: z.string().refine((val) => val !== "none" && val !== "", {
@@ -19,4 +19,4 @@ export const PaymentSchema = z.object({
   categoryId: z.string().optional(),
 });
 
-export type PaymentFormValues = z.infer<typeof PaymentSchema>;
+export type TransactionFormValues = z.infer<typeof TransactionSchema>;

@@ -3,18 +3,18 @@ import { Bank } from "./Bank";
 import { Category } from "./Category";
 import { Merchant } from "./Merchant";
 
-export interface PaymentCreate {
+export interface TransactionCreate {
   title: string;
   date: string;
   amount: number;
-  paymentMethod?: "pix" | "credit_card" | "debit_card" | "boleto" | "bill_payment" | "investment_redemption" | "other";
+  paymentMethod?: "pix" | "credit_card" | "debit_card" | "bank_transfer" | "cash" | "boleto" | "bill_payment" | "investment_redemption" | "other";
   bankId: string;
   categoryId?: string | null;
   id?: string;
   hasMerchant?: boolean;
 }
 
-export interface PaymentResponse {
+export interface TransactionResponse {
   id: string;
   title: string;
   date: string;
@@ -28,7 +28,7 @@ export interface PaymentResponse {
   category?: Category;
 }
 
-export interface PaymentImportResponse {
+export interface TransactionImportResponse {
   id?: string;
   date: string;
   title: string;
@@ -37,7 +37,6 @@ export interface PaymentImportResponse {
     id: string;
     slug: string;
     name: string;
-    type: string;
     colorHex: string;
   };
   hasMerchant?: boolean;
@@ -48,7 +47,7 @@ export interface PaymentImportResponse {
   };
 }
 
-export interface PaymentFilters {
+export interface TransactionFilters {
   query?: string;
   limit?: number;
   paymentMethod?: string;

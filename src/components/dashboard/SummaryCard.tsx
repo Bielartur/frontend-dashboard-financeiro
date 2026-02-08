@@ -10,12 +10,7 @@ interface SummaryCardProps {
   delay?: number;
 }
 
-const variantStyles = {
-  income: 'border-income/30 card-glow-income',
-  expense: 'border-expense/30 card-glow-expense',
-  investment: 'border-investment/30 card-glow-investment',
-  balance: 'border-balance/30 card-glow-balance',
-};
+
 
 const iconStyles = {
   income: 'bg-income/20 text-income',
@@ -35,8 +30,7 @@ export function SummaryCard({ title, value, icon: Icon, variant, delay = 0 }: Su
   return (
     <div
       className={cn(
-        'glass-card rounded-xl p-6 transition-all duration-300 hover:scale-[1.02] animate-slide-up',
-        variantStyles[variant]
+        'glass-card rounded-xl p-6 transition-all duration-300 hover:scale-[1.02] animate-slide-up'
       )}
       style={{ animationDelay: `${delay}ms` }}
     >

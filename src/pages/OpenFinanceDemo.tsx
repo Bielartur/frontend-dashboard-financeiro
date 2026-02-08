@@ -124,7 +124,7 @@ export default function OpenFinanceDemo() {
   };
 
   return (
-    <div className="container mx-auto p-8">
+    <div className="space-y-6">
       <Card className="max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle>Conectar Open Finance</CardTitle>

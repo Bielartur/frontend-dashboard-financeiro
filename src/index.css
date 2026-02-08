@@ -1,24 +1,24 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 @layer base {
 	:root {
-		--background: 222 47% 6%;
+		--background: 222 47% 8%;
 		--foreground: 210 40% 98%;
 
-		--card: 222 47% 9%;
+		--card: 222 47% 12%;
 		--card-foreground: 210 40% 98%;
 
-		--popover: 222 47% 9%;
+		--popover: 222 47% 12%;
 		--popover-foreground: 210 40% 98%;
 
 		--primary: 160 84% 39%;
 		--primary-foreground: 222 47% 6%;
 
-		--secondary: 222 30% 14%;
+		--secondary: 222 30% 17%;
 		--secondary-foreground: 210 40% 98%;
 
 		--muted: 222 30% 18%;
@@ -30,29 +30,18 @@
 		--destructive: 0 72% 51%;
 		--destructive-foreground: 210 40% 98%;
 
-		--border: 222 30% 18%;
-		--input: 222 30% 18%;
-		--ring: 160 84% 39%;
+		--border: 222 30% 21%;
+		--input: 222 30% 21%;
+		--ring: 160 84% 42%;
 
 		--radius: 0.75rem;
 
-		/* Financial category colors */
-		--category-alimentacao: 32 95% 55%;
-		--category-apartamento: 262 83% 58%;
-		--category-lazer: 330 81% 60%;
-		--category-outros: 215 20% 55%;
-		--category-pagamentos: 45 93% 47%;
-		--category-restaurante: 16 85% 55%;
-		--category-saude: 142 76% 36%;
-		--category-trabalho: 199 89% 48%;
-		--category-transporte: 280 67% 55%;
-		--category-vestuario: 350 89% 60%;
-
 		/* Custom colors */
-		--income: 160 84% 39%;
-		--expense: 0 72% 51%;
-		--investment: 192 91% 50%;
-		--balance: 262 83% 58%;
+		/* Custom colors - Softer tones */
+		--income: 155 65% 45%;
+		--expense: 0 64% 54%;
+		--investment: 200 80% 55%;
+		--balance: 260 70% 65%;
 
 		/* Gradients */
 		--gradient-income: linear-gradient(
@@ -86,6 +75,36 @@
 		--sidebar-accent-foreground: 240 5.9% 10%;
 		--sidebar-border: 220 13% 91%;
 		--sidebar-ring: 217.2 91.2% 59.8%;
+	}
+
+	.light {
+		--background: 0 0% 99%;
+		--foreground: 222.2 84% 4.9%;
+
+		--card: 210 45% 95%;
+		--card-foreground: 222.2 84% 4.9%;
+
+		--popover: 0 0% 100%;
+		--popover-foreground: 222.2 84% 4.9%;
+
+		--primary: 160 84% 39%;
+		--primary-foreground: 210 40% 98%;
+
+		--secondary: 210 40% 90%;
+		--secondary-foreground: 222.2 47.4% 11.2%;
+
+		--muted: 210 40% 96.1%;
+		--muted-foreground: 215.4 16.3% 46.9%;
+
+		--accent: 200 74% 92%;
+		--accent-foreground: 222 47% 11%;
+
+		--destructive: 0 84.2% 60.2%;
+		--destructive-foreground: 210 40% 98%;
+
+		--border: 214.3 31.8% 91.4%;
+		--input: 214.3 31.8% 91.4%;
+		--ring: 160 84% 39%;
 	}
 }
 
@@ -143,6 +162,10 @@
 
 	.animate-slide-up {
 		animation: slideUp 0.5s ease-out forwards;
+	}
+
+	.animate-slide-up-delay {
+		animation: slideUp 0.75s ease-out forwards;
 	}
 
 	@keyframes fadeIn {

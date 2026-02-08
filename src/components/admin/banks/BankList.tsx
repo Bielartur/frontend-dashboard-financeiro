@@ -8,7 +8,7 @@ import { EditBankModal } from "../banks/EditBankModal";
 import { ConfirmDeleteModal } from "../ConfirmDeleteModal";
 // import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
-import { BankLogo } from "@/components/BankLogo";
+import { BankLogo } from "@/components/shared/BankLogo";
 
 
 export function BankList() {

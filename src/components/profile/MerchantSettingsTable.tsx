@@ -16,10 +16,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 import { CreateMerchantAliasModal } from "./CreateMerchantAliasModal";
 import { EditMerchantAliasModal } from "./EditMerchantAliasModal";
-import { PaginationControl } from "@/components/PaginationControl";
-import { DebouncedSearchInput } from "@/components/DebouncedSearchInput";
+import { PaginationControl } from "@/components/shared/PaginationControl";
+import { DebouncedSearchInput } from "@/components/shared/DebouncedSearchInput";
 import { Category } from "@/models/Category";
-import { CategoryBadge } from "@/components/CategoryBadge";
+import { CategoryBadge } from "@/components/shared/CategoryBadge";
 
 // Define interface locally if not in models yet
 interface MerchantAlias {
@@ -166,11 +166,14 @@ export function MerchantSettingsTable() {
                   </TableCell>
                   <TableCell>
                     <span className="text-muted-foreground">
-                      {alias.categoryId ? (
-                        <CategoryBadge category={categories.find(c => c.id === alias.categoryId)} />
-                      ) : (
-                        <span className="opacity-50 italic">-</span>
-                      )}
+                      {(() => {
+                        const category = categories.find(c => c.id === alias.categoryId);
+                        return alias.categoryId && category ? (
+                          <CategoryBadge category={category} />
+                        ) : (
+                          <span className="opacity-50 italic">-</span>
+                        );
+                      })()}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">

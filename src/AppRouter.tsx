@@ -1,32 +1,62 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Index from "./pages/Index";
-import ImportPayments from "./pages/ImportPayments";
-import SearchPayments from "./pages/SearchPayments";
-import NotFound from "./pages/NotFound";
+import DashboardLayout from "./layouts/DashboardLayout";
 import AdminLayout from "./layouts/AdminLayout";
-import CategoriesPage from "./pages/admin/CategoriesPage";
-import BanksPage from "./pages/admin/BanksPage";
-import OpenFinanceDemo from "./pages/OpenFinanceDemo";
-
-import ProfilePage from "./pages/ProfilePage";
+import { ProfileLayout } from "./layouts/ProfileLayout";
+import Index from "./pages/Index";
+import SearchTransactions from "./pages/SearchTransactions";
+import ImportTransactions from "./pages/ImportTransactions";
+import NotFound from "./pages/NotFound";
+import BanksPage from "@/pages/admin/BanksPage";
+import CategoriesPage from "@/pages/admin/CategoriesPage";
+import ProfileAccount from "@/pages/profile/ProfileAccount";
+import ProfileCategories from "@/pages/profile/ProfileCategories";
+import ProfileMerchants from "@/pages/profile/ProfileMerchants";
+import ProfilePreferences from "@/pages/profile/ProfilePreferences";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 export const AppRouter = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/search-payments" element={<SearchPayments />} />
-        <Route path="/import-payments" element={<ImportPayments />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Navigate to="categories" replace />} />
-          <Route path="categories" element={<CategoriesPage />} />
-          <Route path="banks" element={<BanksPage />} />
+        {/* Public Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Navigate to="categories" replace />} />
+            <Route path="categories" element={<CategoriesPage />} />
+            <Route path="banks" element={<BanksPage />} />
+          </Route>
+
+          <Route element={<DashboardLayout />}>
+            <Route path="/" element={<Index />} />
+            <Route path="/transactions" element={<SearchTransactions />} />
+            <Route path="/import-transactions" element={<ImportTransactions />} />
+
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<Navigate to="categories" replace />} />
+              <Route path="banks" element={<BanksPage />} />
+              <Route path="categories" element={<CategoriesPage />} />
+            </Route>
+
+            {/* Profile Routes */}
+            <Route path="/profile" element={<ProfileLayout />}>
+              <Route index element={<Navigate to="/profile/account" replace />} />
+              <Route path="account" element={<ProfileAccount />} />
+              <Route path="categories" element={<ProfileCategories />} />
+              <Route path="merchants" element={<ProfileMerchants />} />
+              <Route path="preferences" element={<ProfilePreferences />} />
+            </Route>
+          </Route>
         </Route>
-        <Route path="/open-finance-demo" element={<OpenFinanceDemo />} />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
-  )
-}
+  );
+};

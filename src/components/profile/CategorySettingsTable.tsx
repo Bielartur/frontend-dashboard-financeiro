@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRequests } from "@/hooks/use-requests";
 import { Category, CategorySettingsUpdate } from "@/models/Category";
+import { PaginationControl } from "@/components/shared/PaginationControl";
 import {
   Table,
   TableBody,
@@ -11,20 +12,33 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Pencil, Loader2, Search } from "lucide-react";
+// Removed Input import as it is now inside DebouncedSearchInput
+import { Pencil, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { EditCategoryModal } from "@/components/admin/categories/EditCategoryModal";
 import { toast } from "sonner";
+import { DebouncedSearchInput } from "@/components/shared/DebouncedSearchInput";
 
 export function CategorySettingsTable() {
   const api = useRequests();
   const queryClient = useQueryClient();
   const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
 
-  const { data: categories = [], isLoading } = useQuery<Category[]>({
-    queryKey: ["categories"],
-    queryFn: api.getCategories,
+  const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
+
+  // Reset page when search changes
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery]);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["categories", searchQuery, page],
+    queryFn: () => api.searchCategories(searchQuery, page, 10),
+    placeholderData: (previousData) => previousData,
   });
+
+  const categories = data?.items || [];
+  const totalPages = data?.pages || 1;
 
   const handleSave = async (id: string, data: CategorySettingsUpdate) => {
     try {
@@ -39,36 +53,26 @@ export function CategorySettingsTable() {
     }
   };
 
-  const [searchQuery, setSearchQuery] = useState("");
+  const handleNextPage = () => {
+    if (page < totalPages) setPage((p) => p + 1);
+  };
 
-  const filteredCategories = categories.filter((category) => {
-    const query = searchQuery.toLowerCase();
-    const nameMatch = category.name.toLowerCase().includes(query);
-    const aliasMatch = category.alias?.toLowerCase().includes(query);
-    return nameMatch || aliasMatch;
-  });
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  const handlePrevPage = () => {
+    if (page > 1) setPage((p) => p - 1);
+  };
 
   return (
     <div className="space-y-4">
       <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
+        <DebouncedSearchInput
           placeholder="Buscar categorias..."
-          className="pl-9"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={setSearchQuery}
+          className="w-full"
         />
       </div>
 
-      <div className="rounded-md border h-[60vh] overflow-y-auto relative">
+      <div className="rounded-md border h-[60vh] overflow-y-auto relative flex flex-col justify-between">
         <Table>
           <TableHeader className="sticky top-0 bg-secondary z-10 shadow-sm">
             <TableRow className="hover:bg-secondary">
@@ -79,14 +83,22 @@ export function CategorySettingsTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredCategories.length === 0 ? (
+            {isLoading && categories.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="h-[52vh] text-center">
+                  <div className="flex justify-center items-center h-full">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : categories.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="h-[52vh] text-center">
                   Nenhuma categoria encontrada.
                 </TableCell>
               </TableRow>
             ) : (
-              filteredCategories.map((category) => (
+              categories.map((category) => (
                 <TableRow key={category.id}>
                   <TableCell>
                     <div
@@ -119,6 +131,12 @@ export function CategorySettingsTable() {
           </TableBody>
         </Table>
       </div>
+
+      <PaginationControl
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
 
       <EditCategoryModal
         category={categoryToEdit}

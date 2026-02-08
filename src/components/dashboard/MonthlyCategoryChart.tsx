@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { formatPeriodLabel } from '@/utils/formatters';
-import { MonthCombobox } from '@/components/MonthCombobox';
+import { MonthCombobox } from '@/components/shared/combobox/MonthCombobox';
 import {
   formatCurrency,
 } from '@/data/financialData';

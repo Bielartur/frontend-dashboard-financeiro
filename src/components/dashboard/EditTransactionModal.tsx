@@ -25,24 +25,24 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useRequests } from "@/hooks/use-requests";
-import { PaymentSchema, PaymentFormValues } from "@/models/schemas/PaymentSchema";
+import { TransactionSchema, TransactionFormValues } from "@/models/schemas/TransactionSchema";
 import { Category } from "@/models/Category";
 import { Bank } from "@/models/Bank";
 import { Merchant } from "@/models/Merchant";
 import { BaseModal } from "@/components/admin/BaseModal";
 import { MerchantSelect } from "./MerchantSelect";
-import { PaymentResponse } from "@/models/Payment";
-import { CategoryCombobox } from "@/components/CategoryCombobox";
-import { BankCombobox } from "@/components/BankCombobox";
-import { PaymentMethodCombobox } from "@/components/PaymentMethodCombobox";
+import { TransactionResponse } from "@/models/Transaction";
+import { CategoryCombobox } from "@/components/shared/combobox/CategoryCombobox";
+import { BankCombobox } from "@/components/shared/combobox/BankCombobox";
+import { TransactionMethodCombobox } from "@/components/shared/combobox/TransactionMethodCombobox";
 
-interface EditPaymentModalProps {
+interface EditTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  payment: PaymentResponse;
+  transaction: TransactionResponse;
 }
 
-export function EditPaymentModal({ isOpen, onClose, payment }: EditPaymentModalProps) {
+export function EditTransactionModal({ isOpen, onClose, transaction }: EditTransactionModalProps) {
   const api = useRequests();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -61,32 +61,40 @@ export function EditPaymentModal({ isOpen, onClose, payment }: EditPaymentModalP
     return () => clearTimeout(timer);
   }, [merchantSearch]);
 
-  const form = useForm<PaymentFormValues>({
-    resolver: zodResolver(PaymentSchema),
+  const form = useForm<TransactionFormValues>({
+    resolver: zodResolver(TransactionSchema),
     defaultValues: {
-      title: payment.title,
-      amount: Number(payment.amount),
-      bankId: payment.bank?.id || "",
-      categoryId: payment.category?.id || "none", // Handle null category
-      paymentMethod: (payment.paymentMethod?.value || "other") as "pix" | "credit_card" | "debit_card" | "other",
-      date: new Date(payment.date),
+      title: transaction.title,
+      amount: Number(transaction.amount),
+      bankId: transaction.bank?.id || "",
+      categoryId: transaction.category?.id || "none", // Handle null category
+      paymentMethod: (transaction.paymentMethod?.value || "other") as "pix" | "credit_card" | "debit_card" | "other",
+      date: (() => {
+        if (!transaction.date) return new Date();
+        const [year, month, day] = transaction.date.toString().split('-').map(Number);
+        return new Date(year, month - 1, day);
+      })(),
     },
   });
 
-  // Reset form when payment changes
+  // Reset form when transaction changes
   useEffect(() => {
-    if (isOpen && payment) {
+    if (isOpen && transaction) {
       form.reset({
-        title: payment.title,
-        amount: Number(payment.amount),
-        bankId: payment.bank?.id || "",
-        categoryId: payment.category?.id || "",
-        paymentMethod: (payment.paymentMethod?.value || "other") as "pix" | "credit_card" | "debit_card" | "other",
-        date: new Date(payment.date),
+        title: transaction.title,
+        amount: Number(transaction.amount),
+        bankId: transaction.bank?.id || "",
+        categoryId: transaction.category?.id || "",
+        paymentMethod: (transaction.paymentMethod?.value || "other") as "pix" | "credit_card" | "debit_card" | "other",
+        date: (() => {
+          if (!transaction.date) return new Date();
+          const [year, month, day] = transaction.date.toString().split('-').map(Number);
+          return new Date(year, month - 1, day);
+        })(),
       });
-      setMerchantSearch(payment.title); // Init search with current title
+      setMerchantSearch(transaction.title); // Init search with current title
     }
-  }, [isOpen, payment, form]);
+  }, [isOpen, transaction, form]);
 
 
   // Queries
@@ -108,10 +116,10 @@ export function EditPaymentModal({ isOpen, onClose, payment }: EditPaymentModalP
     enabled: isOpen,
   });
 
-  async function onSubmit(values: PaymentFormValues) {
+  async function onSubmit(values: TransactionFormValues) {
     setIsLoading(true);
     try {
-      await api.updatePayment(payment.id, {
+      await api.updateTransaction(transaction.id, {
         title: values.title,
         date: format(values.date, "yyyy-MM-dd"),
         amount: values.amount,
@@ -120,19 +128,19 @@ export function EditPaymentModal({ isOpen, onClose, payment }: EditPaymentModalP
         categoryId: values.categoryId === "none" || !values.categoryId ? null : values.categoryId,
       });
 
-      toast.success("Pagamento atualizado!", {
+      toast.success("Transação atualizada!", {
         description: `Valor: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(values.amount)}`,
       });
 
       // Invalidate queries to update lists
-      queryClient.invalidateQueries({ queryKey: ["payments-search"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions-search"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
 
       onClose();
     } catch (error: any) {
       console.error(error);
       toast.error("Erro ao atualizar", {
-        description: error.message || "Ocorreu um erro ao atualizar o pagamento."
+        description: error.message || "Ocorreu um erro ao atualizar a transação."
       });
     } finally {
       setIsLoading(false);
@@ -143,8 +151,8 @@ export function EditPaymentModal({ isOpen, onClose, payment }: EditPaymentModalP
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Editar Pagamento"
-      description="Altere os dados do pagamento abaixo."
+      title="Editar Transação"
+      description="Altere os dados da transação abaixo."
       maxWidth="sm:max-w-[520px]"
     >
       <Form {...form}>
@@ -272,7 +280,7 @@ export function EditPaymentModal({ isOpen, onClose, payment }: EditPaymentModalP
               <FormItem>
                 <FormLabel>Forma de Pagamento</FormLabel>
                 <FormControl>
-                  <PaymentMethodCombobox
+                  <TransactionMethodCombobox
                     value={field.value}
                     onChange={field.onChange}
                     placeholder="Selecione o método"

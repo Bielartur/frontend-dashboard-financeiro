@@ -1,4 +1,4 @@
-import { AUTH_TOKEN, BASE_URL } from "./apiRequests";
+import { getAccessToken, BASE_URL } from "./apiRequests";
 
 interface StreamingOptions {
   onProgress?: (status: string, message: string) => void;
@@ -16,7 +16,7 @@ export async function streamingRequest(
   const url = `${baseUrl}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
 
   const headers: HeadersInit = {
-    "Authorization": `Bearer ${AUTH_TOKEN}`
+    "Authorization": `Bearer ${getAccessToken()}`
   };
 
   if (body) {

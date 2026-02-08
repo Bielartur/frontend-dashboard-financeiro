@@ -1,13 +1,69 @@
-import axios, { type AxiosRequestConfig, type Method } from "axios";
+import axios, { type AxiosRequestConfig, type Method, AxiosError } from "axios";
 import type { ApiError } from "../models/Api";
 
-// Hardcoded token for now as requested by user in previous context, 
-// or we can use the helper if the user wants to keep the token management structure.
-// The user said: "adapte esse arquivo ... sem utilizar o refreshToken".
-// We will grab the token from localStorage if available, or just use the hardcoded one if we decide to keep it there.
-// For now, let's assume we want to support the previous hardcoded token or a token passed in.
-
 export const BASE_URL = "http://localhost:8000";
+
+// In-memory access token storage
+let accessToken: string | null = null;
+
+export const setAccessToken = (token: string | null) => {
+    accessToken = token;
+};
+
+export const getAccessToken = () => accessToken;
+
+// Create Axios instance
+const api = axios.create({
+    baseURL: BASE_URL,
+    withCredentials: true, // Important for Cookies (Refresh Token)
+});
+
+// Request Interceptor: Inject Access Token
+api.interceptors.request.use((config) => {
+    if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+    return config;
+});
+
+// Response Interceptor: Handle 401 & Refresh
+api.interceptors.response.use(
+    (response) => response,
+    async (error: AxiosError) => {
+        const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+
+        // Check if error is 401 and we haven't retried yet
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+
+            try {
+                // Attempt to refresh token using the HttpOnly cookie
+                const refreshResponse = await axios.post(`${BASE_URL}/auth/refresh`, {}, {
+                    withCredentials: true
+                });
+
+                const newAccessToken = refreshResponse.data.access_token;
+
+                if (newAccessToken) {
+                    setAccessToken(newAccessToken);
+
+                    // Update header and retry original request
+                    if (originalRequest.headers) {
+                        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+                    }
+                    return api(originalRequest);
+                }
+            } catch (refreshError) {
+                // Refresh failed (cookie expired or invalid)
+                setAccessToken(null);
+                // Optionally redirect to login here if we had access to router
+                // window.location.href = "/login"; 
+                return Promise.reject(refreshError);
+            }
+        }
+        return Promise.reject(error);
+    }
+);
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -28,37 +84,26 @@ function normalizeAxiosError(error: unknown): ApiError {
     };
 }
 
-// Simple token storage for now (can be replaced by HelpersToken if we keep it)
-export const AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJnYWJyaWVsY2FudG8yMDE2QGdtYWlsLmNvbSIsImlkIjoiZWM5NjE2ZDktNWM4NC00NjE3LTg4MmQtY2QzMDVjNTFjMzcwIiwiZXhwIjoxNzcwMDYzNjUzfQ.qsWmgQD7ZrLfYmonOoJ1pUKXjnJPWEGCI4luLcJB_Mo";
-
 export async function apiRequest<T>(
     endpoint: string,
     method: HttpMethod = "GET",
     data: Record<string, unknown> | FormData = {},
     withAuth: boolean = true
 ): Promise<T> {
-    const headers: AxiosRequestConfig["headers"] = {};
-
-    if (!(data instanceof FormData)) {
-        headers["Content-Type"] = "application/json";
-    }
-
-    if (withAuth) {
-        // Use the hardcoded token as primary for now since the auth flow isn't fully set up with login
-        headers.Authorization = `Bearer ${AUTH_TOKEN}`;
-    }
-
     const config: AxiosRequestConfig = {
-        baseURL: BASE_URL,
         url: endpoint,
         method,
-        headers,
         data: method !== "GET" ? data : undefined,
         params: method === "GET" ? data : undefined,
     };
 
+    if (!(data instanceof FormData)) {
+        // Axios sets Content-Type automatically for objects, but we can enforce if needed.
+        // For FormData it sets multipart automatically.
+    }
+
     try {
-        const response = await axios<T>(config);
+        const response = await api(config);
         return response.data;
     } catch (err) {
         throw normalizeAxiosError(err);

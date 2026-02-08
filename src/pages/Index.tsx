@@ -116,95 +116,86 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Background gradient */}
-      <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-8">
-          {/* Header */}
-          <DashboardHeader
-            selectedMonth={selectedMonth}
-            selectedYear={selectedYear}
-            onSelectYear={setSelectedYear}
-            onSelectMonth={(idx) => setSelectedMonth(idx === -1 ? null : idx)}
-            monthsWithData={monthsData.map(m => ({ month: m.month, year: m.year }))}
-            availableYears={availableYears}
-            dataRangeLabel={dataRangeLabel}
-          />
+    <div className="space-y-8">
+      {/* Header */}
+      <DashboardHeader
+        selectedMonth={selectedMonth}
+        selectedYear={selectedYear}
+        onSelectYear={setSelectedYear}
+        onSelectMonth={(idx) => setSelectedMonth(idx === -1 ? null : idx)}
+        monthsWithData={monthsData.map(m => ({ month: m.month, year: m.year }))}
+        availableYears={availableYears}
+        dataRangeLabel={dataRangeLabel}
+      />
 
 
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <SummaryCard
+          title={selectedMonth !== null ? `Receita - ${currentMonthData?.monthShort}` : 'Receita Total'}
+          value={displayData.revenue}
+          icon={TrendingUp}
+          variant="income"
+          delay={0}
+        />
+        <SummaryCard
+          title={selectedMonth !== null ? `Gastos - ${currentMonthData?.monthShort}` : 'Gastos Totais'}
+          value={displayData.expenses}
+          icon={TrendingDown}
+          variant="expense"
+          delay={50}
+        />
+        <SummaryCard
+          title={selectedMonth !== null ? `Investimentos - ${currentMonthData?.monthShort}` : 'Investimentos Totais'}
+          value={displayData.investments}
+          icon={PiggyBank}
+          variant="investment"
+          delay={100}
+        />
+        <SummaryCard
+          title={selectedMonth !== null ? `Saldo - ${currentMonthData?.monthShort}` : 'Saldo Estimado'}
+          value={displayData.balance}
+          icon={Wallet}
+          variant="balance"
+          delay={150}
+        />
+      </div>
+
+      {/* Charts Row 1 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RevenueExpenseChart selectedMonth={selectedMonth} data={monthsData} />
+        <CategoryDonutChart selectedMonth={selectedMonth} data={monthsData} />
+      </div>
+
+      {/* Charts Row 2 */}
+      <MonthlyCategoryChart
+        selectedMonth={selectedMonth}
+        data={monthsData}
+        selectedYear={selectedYear}
+        onSelectMonth={setSelectedMonth}
+      />
 
 
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <SummaryCard
-              title={selectedMonth !== null ? `Receita - ${currentMonthData?.monthShort}` : 'Receita Total'}
-              value={displayData.revenue}
-              icon={TrendingUp}
-              variant="income"
-              delay={0}
-            />
-            <SummaryCard
-              title={selectedMonth !== null ? `Gastos - ${currentMonthData?.monthShort}` : 'Gastos Totais'}
-              value={displayData.expenses}
-              icon={TrendingDown}
-              variant="expense"
-              delay={50}
-            />
-            <SummaryCard
-              title={selectedMonth !== null ? `Investimentos - ${currentMonthData?.monthShort}` : 'Investimentos Totais'}
-              value={displayData.investments}
-              icon={PiggyBank}
-              variant="investment"
-              delay={100}
-            />
-            <SummaryCard
-              title={selectedMonth !== null ? `Saldo - ${currentMonthData?.monthShort}` : 'Saldo Estimado'}
-              value={displayData.balance}
-              icon={Wallet}
-              variant="balance"
-              delay={150}
-            />
-          </div>
+      {/* Category Annual Evolution */}
+      <CategoryEvolutionChart
+        selectedCategories={selectedCategories}
+        data={monthsData}
+        selectedYear={selectedYear}
+        onSelectCategories={setSelectedCategories}
+      />
 
-          {/* Charts Row 1 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <RevenueExpenseChart selectedMonth={selectedMonth} data={monthsData} />
-            <CategoryDonutChart selectedMonth={selectedMonth} data={monthsData} />
-          </div>
+      {/* CategoryTable */}
+      <CategoryTable
+        selectedMonth={selectedMonth}
+        data={monthsData}
+        selectedYear={selectedYear}
+      />
 
-          {/* Charts Row 2 */}
-          <MonthlyCategoryChart
-            selectedMonth={selectedMonth}
-            data={monthsData}
-            selectedYear={selectedYear}
-            onSelectMonth={setSelectedMonth}
-          />
-
-
-          {/* Category Annual Evolution */}
-          <CategoryEvolutionChart
-            selectedCategories={selectedCategories}
-            data={monthsData}
-            selectedYear={selectedYear}
-            onSelectCategories={setSelectedCategories}
-          />
-
-          {/* CategoryTable */}
-          <CategoryTable
-            selectedMonth={selectedMonth}
-            data={monthsData}
-            selectedYear={selectedYear}
-          />
-        </div>
-
-        {/* Footer */}
-        <div className="mt-12 pt-6 border-t border-border/30 text-center">
-          <p className="text-sm text-muted-foreground">
-            Dashboard Financeiro • Controle de Finanças Pessoais {new Date().getFullYear()}
-          </p>
-        </div>
+      {/* Footer */}
+      <div className="mt-12 pt-6 border-t border-border/30 text-center">
+        <p className="text-sm text-muted-foreground">
+          Dashboard Financeiro • Controle de Finanças Pessoais {new Date().getFullYear()}
+        </p>
       </div>
     </div>
   );

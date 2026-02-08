@@ -14,9 +14,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, Trash2, Plus, Check } from "lucide-react";
-import { DebouncedSearchInput } from "@/components/DebouncedSearchInput";
+import { DebouncedSearchInput } from "@/components/shared/DebouncedSearchInput";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CategoryCombobox } from "@/components/CategoryCombobox";
+import { CategoryCombobox } from "@/components/shared/combobox/CategoryCombobox";
 
 interface EditMerchantAliasModalProps {
   isOpen: boolean;

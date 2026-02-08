@@ -1,16 +1,8 @@
-import { BarChart3, Calendar, Search, Settings, UserCircle, ShieldCheck } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Button } from '../ui/button';
+import { Home, Calendar, Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { MonthCombobox } from '../MonthCombobox';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { MonthCombobox } from '../shared/combobox/MonthCombobox';
+import { BreadcrumbHeader } from "@/components/shared/BreadcrumbHeader";
+import { Input } from "@/components/ui/input";
 
 interface DashboardHeaderProps {
   selectedMonth: number | null;
@@ -32,42 +24,36 @@ export function DashboardHeader({
   dataRangeLabel
 }: DashboardHeaderProps) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
-      <div className="flex items-center gap-3">
-        <div className="p-3 rounded-xl bg-primary/20">
-          <BarChart3 className="h-6 w-6 text-primary" />
-        </div>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-            Dashboard Financeiro
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Controle suas finanças pessoais
-          </p>
+    <div className="flex justify-between animate-fade-in">
+      {/* Top Row: Breadcrumb and Search */}
+      <div className="flex items-center justify-between gap-4">
+        {/* Breadcrumb */}
+        <div className="-ml-1">
+          <BreadcrumbHeader items={[{ label: 'Dashboard' }]} />
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        <Link to="/search-payments">
-          <Button variant="default" size="sm">Novo Pagamento</Button>
-        </Link>
-        <Link to="/search-payments">
-          <Button variant="outline" size="sm" className="gap-2">
-            <Search className="h-4 w-4" />
-            Buscar
-          </Button>
-        </Link>
+
+      {/* Bottom Row: Filters */}
+      <div className="flex items-center gap-4">
+
+        {/* Search Field */}
+        <div className="relative flex-1 max-w-md mr-2">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Buscar"
+            className="pl-10 bg-secondary/50 border-border/50"
+          />
+        </div>
 
         {/* Month Selector */}
-        <div className="flex items-center gap-2">
-          <div className="w-[180px]">
-            <MonthCombobox
-              selectedMonth={selectedMonth}
-              months={monthsWithData}
-              onSelectMonth={onSelectMonth}
-              disabled={monthsWithData.length === 0}
-            />
-          </div>
-        </div>
+        <MonthCombobox
+          selectedMonth={selectedMonth}
+          months={monthsWithData}
+          onSelectMonth={onSelectMonth}
+          disabled={monthsWithData.length === 0}
+        />
+
 
         {/* Year Selector */}
         <div className="relative flex flex-col items-end gap-1">
@@ -97,30 +83,6 @@ export function DashboardHeader({
             </span>
           )}
         </div>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" title="Configurações">
-              <Settings className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <Link to="/profile">
-              <DropdownMenuItem className="cursor-pointer">
-                <UserCircle className="mr-2 h-4 w-4" />
-                <span>Perfil</span>
-              </DropdownMenuItem>
-            </Link>
-            <Link to="/admin">
-              <DropdownMenuItem className="cursor-pointer">
-                <ShieldCheck className="mr-2 h-4 w-4" />
-                <span>Administração</span>
-              </DropdownMenuItem>
-            </Link>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </div>
   );

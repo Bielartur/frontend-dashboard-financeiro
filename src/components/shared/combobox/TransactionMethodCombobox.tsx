@@ -15,9 +15,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { getPaymentMethodIcon } from "@/utils/payment-icons";
+import { getTransactionMethodIcon } from "@/utils/transaction-icons";
 
-interface PaymentMethodComboboxProps {
+interface TransactionMethodComboboxProps {
   value?: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -31,28 +31,30 @@ const METHODS = [
   { value: "pix", label: "Pix" },
   { value: "credit_card", label: "Cartão de Crédito" },
   { value: "debit_card", label: "Cartão de Débito" },
+  { value: "bank_transfer", label: "Transferência Bancária" },
   { value: "boleto", label: "Boleto" },
   { value: "bill_payment", label: "Pagamento de Fatura" },
   { value: "investment_redemption", label: "Resgate de Investimento" },
+  { value: "cash", label: "Dinheiro" }, // Added based on typical options and backend enum
   { value: "other", label: "Outro" },
 ];
 
-export function PaymentMethodCombobox({
+export function TransactionMethodCombobox({
   value,
   onChange,
   placeholder = "Selecione um método",
   extraOption,
-}: PaymentMethodComboboxProps) {
+}: TransactionMethodComboboxProps) {
   const [open, setOpen] = useState(false);
 
   const selectedMethod = METHODS.find((m) => m.value === value);
 
   const SelectedIcon = selectedMethod
-    ? getPaymentMethodIcon(selectedMethod.value).icon
+    ? getTransactionMethodIcon(selectedMethod.value).icon
     : null;
 
   const SelectedIconConfig = selectedMethod
-    ? getPaymentMethodIcon(selectedMethod.value)
+    ? getTransactionMethodIcon(selectedMethod.value)
     : null;
 
   return (
@@ -114,7 +116,7 @@ export function PaymentMethodCombobox({
 
             <CommandGroup>
               {METHODS.map((method) => {
-                const iconConfig = getPaymentMethodIcon(method.value);
+                const iconConfig = getTransactionMethodIcon(method.value);
                 const Icon = iconConfig.icon;
 
                 return (

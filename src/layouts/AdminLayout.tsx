@@ -1,6 +1,7 @@
 
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { ArrowLeft, Building2, Wallet, LayoutDashboard, ChevronRight } from "lucide-react";
+import { BreadcrumbHeader } from "@/components/shared/BreadcrumbHeader";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -61,13 +62,14 @@ export default function AdminLayout() {
       <main className="flex-1 flex flex-col min-w-0 bg-background/50">
         {/* Header */}
         <header className="h-16 border-b bg-card px-6 flex items-center justify-between sticky top-0 z-10">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link to="/admin" className="hover:text-foreground">Home</Link>
-            <ChevronRight className="h-4 w-4" />
-            <span className="capitalize text-foreground font-medium">
-              {isCategoriesActive ? 'Categorias' : isBanksActive ? 'Bancos' : 'Admin'}
-            </span>
-          </div>
+          <BreadcrumbHeader
+            items={[
+              { label: 'Admin', href: '/admin' },
+              ...(isCategoriesActive ? [{ label: 'Categorias' }] : []),
+              ...(isBanksActive ? [{ label: 'Bancos' }] : [])
+            ]}
+            className="my-auto"
+          />
         </header>
 
         {/* Content */}

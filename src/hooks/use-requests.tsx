@@ -4,19 +4,16 @@ import { apiRequest } from "../utils/apiRequests";
 import { Category, CategoryCreate, CategoryUpdate } from "@/models/Category";
 import { Bank, BankCreate, BankUpdate } from "@/models/Bank";
 import { Merchant } from "@/models/Merchant";
-import { PaymentCreate, PaymentResponse, PaymentFilters, PaymentImportResponse } from "@/models/Payment";
+import { TransactionCreate, TransactionResponse, TransactionFilters, TransactionImportResponse } from "@/models/Transaction";
 import { DashboardAvailableMonth, DashboardResponse } from "@/models/Financial";
 import { PaginatedResponse } from "@/models/Pagination";
 
-export interface OpenFinanceItem {
-  id: string;
-  pluggy_item_id: string;
-  bankName: string;
-  status: string;
-}
+import { OpenFinanceItem, getStatusLabel } from "@/models/OpenFinanceItem";
 
 
-export type { Category, CategoryCreate, CategoryUpdate, Bank, BankCreate, Merchant, PaymentCreate, PaymentResponse, PaymentFilters, PaymentImportResponse, DashboardResponse, PaginatedResponse };
+export type { Category, CategoryCreate, CategoryUpdate, Bank, BankCreate, Merchant, TransactionCreate, TransactionResponse, TransactionFilters, TransactionImportResponse, DashboardResponse, PaginatedResponse };
+// Re-export OpenFinanceItem for convenience if needed, or consumers import directly.
+export type { OpenFinanceItem };
 
 // --- Requests ---
 
@@ -36,16 +33,16 @@ const createCategory = async (payload: CategoryCreate) => {
   return await apiRequest<any>("categories/", "POST", payload as unknown as Record<string, unknown>);
 };
 
-const createPayment = async (payload: PaymentCreate) => {
-  return await apiRequest<any>("payments/", "POST", payload as unknown as Record<string, unknown>);
+const createTransaction = async (payload: TransactionCreate) => {
+  return await apiRequest<any>("transactions/", "POST", payload as unknown as Record<string, unknown>);
 };
 
-const updatePayment = async (id: string, payload: PaymentCreate) => {
-  return await apiRequest<PaymentResponse>(`payments/${id}`, "PUT", payload as unknown as Record<string, unknown>);
+const updateTransaction = async (id: string, payload: TransactionCreate) => {
+  return await apiRequest<TransactionResponse>(`transactions/${id}`, "PUT", payload as unknown as Record<string, unknown>);
 };
 
-const deletePayment = async (id: string) => {
-  return await apiRequest<void>(`payments/${id}`, "DELETE");
+const deleteTransaction = async (id: string) => {
+  return await apiRequest<void>(`transactions/${id}`, "DELETE");
 };
 
 const searchMerchants = async (query: string, limit: number = 12) => {
@@ -55,7 +52,7 @@ const searchMerchants = async (query: string, limit: number = 12) => {
 
 // Filter interface
 
-const searchPayments = async (filters: PaymentFilters) => {
+const searchTransactions = async (filters: TransactionFilters) => {
   const queryParams = new URLSearchParams();
 
   if (filters.query) queryParams.append("query", filters.query);
@@ -71,12 +68,16 @@ const searchPayments = async (filters: PaymentFilters) => {
   if (filters.minAmount) queryParams.append("min_amount", filters.minAmount.toString());
   if (filters.maxAmount) queryParams.append("max_amount", filters.maxAmount.toString());
 
-  return await apiRequest<PaginatedResponse<PaymentResponse>>(`payments/search?${queryParams.toString()}`, "GET");
+  return await apiRequest<PaginatedResponse<TransactionResponse>>(`transactions/search?${queryParams.toString()}`, "GET");
 };
 
 
 const updateCategory = async (id: string, payload: CategoryUpdate) => {
   return await apiRequest<Category>(`categories/${id}`, "PUT", payload as unknown as Record<string, unknown>);
+};
+
+const searchCategories = async (query: string, page: number = 1, limit: number = 12) => {
+  return await apiRequest<PaginatedResponse<Category>>(`categories/search?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}`, "GET");
 };
 
 const updateCategorySettings = async (id: string, payload: { alias?: string; colorHex?: string }) => {
@@ -95,15 +96,15 @@ const deleteBank = async (id: string) => {
   return await apiRequest<void>(`banks/${id}`, "DELETE");
 };
 
-const importPayments = async (file: File, source: string, type: string = "invoice") => {
+const importTransactions = async (file: File, source: string, type: string = "invoice") => {
   const formData = new FormData();
   formData.append("file", file);
-  return await apiRequest<PaymentImportResponse[]>(`payments/import/${source}?type=${type}`, "POST", formData);
+  return await apiRequest<TransactionImportResponse[]>(`transactions/import/${source}?type=${type}`, "POST", formData);
 };
 
-const createPaymentsBulk = async (payments: PaymentCreate[], sourceType?: string) => {
-  const url = sourceType ? `payments/bulk?import_type=${sourceType}` : "payments/bulk";
-  return await apiRequest<PaymentResponse[]>(url, "POST", payments as unknown as Record<string, unknown>);
+const createTransactionsBulk = async (transactions: TransactionCreate[], sourceType?: string) => {
+  const url = sourceType ? `transactions/bulk?import_type=${sourceType}` : "transactions/bulk";
+  return await apiRequest<TransactionResponse[]>(url, "POST", transactions as unknown as Record<string, unknown>);
 };
 
 
@@ -172,26 +173,34 @@ const syncOpenFinanceItem = async (localItemId: string, onProgress?: (status: st
   });
 };
 
+const syncOpenFinanceAccount = async (input: { accountId: string, onProgress?: (status: string, message: string) => void }) => {
+  await streamingRequest(`/open-finance/accounts/${input.accountId}/sync`, {
+    method: "POST",
+    onProgress: input.onProgress
+  });
+};
+
 
 // --- Hook Export ---
 
 export const useRequests = () => ({
   getCategories,
   getBanks,
-  createPayment,
-  updatePayment,
-  deletePayment,
+  createTransaction,
+  updateTransaction,
+  deleteTransaction,
   createBank,
   createCategory,
   updateCategory,
+  searchCategories,
   updateCategorySettings,
   deleteCategory,
   updateBank,
   deleteBank,
   searchMerchants,
-  searchPayments,
-  importPayments,
-  createPaymentsBulk,
+  searchTransactions,
+  importTransactions,
+  createTransactionsBulk,
   getDashboard,
   getAvailableMonths,
   getMerchantAliases,
@@ -206,6 +215,7 @@ export const useRequests = () => ({
   getOpenFinanceItems,
   createOpenFinanceItem,
   syncOpenFinanceItem,
+  syncOpenFinanceAccount,
 });
 
 

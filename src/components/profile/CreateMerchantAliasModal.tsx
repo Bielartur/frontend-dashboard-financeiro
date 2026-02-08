@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { CategoryCombobox } from "@/components/CategoryCombobox";
+import { CategoryCombobox } from "@/components/shared/combobox/CategoryCombobox";
 import { Category } from "@/models/Category";
 
 // Reuse interface or import

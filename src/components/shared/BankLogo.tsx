@@ -19,14 +19,14 @@ export function BankLogo({ logoUrl, name, colorHex, className }: BankLogoProps) 
         "flex items-center justify-center w-9 h-9 rounded-md shrink-0 overflow-hidden bg-muted/20 border border-border/10 shadow-sm",
         className
       )}
-      style={{ backgroundColor: colorHex }}
+      style={{ backgroundColor: colorHex || '#ffffff' }}
     >
       <img
         src={logoUrl || ''}
         alt={name}
         className={cn(
           "w-full h-full object-contain",
-          isTransparent ? "p-[20%]" : "p-0"
+          // isTransparent ? "p-[20%]" : "p-0" 
         )}
       />
     </div>

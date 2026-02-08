@@ -32,23 +32,23 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useRequests } from "@/hooks/use-requests";
-import { PaymentSchema, PaymentFormValues } from "@/models/schemas/PaymentSchema";
+import { TransactionSchema, TransactionFormValues } from "@/models/schemas/TransactionSchema";
 import { Category } from "@/models/Category";
 import { Bank } from "@/models/Bank";
 import { Merchant } from "@/models/Merchant";
 import { BaseModal } from "@/components/admin/BaseModal";
 import { MerchantSelect } from "./MerchantSelect";
-import { CategoryCombobox } from "@/components/CategoryCombobox";
-import { BankCombobox } from "@/components/BankCombobox";
-import { PaymentMethodCombobox } from "@/components/PaymentMethodCombobox";
+import { CategoryCombobox } from "@/components/shared/combobox/CategoryCombobox";
+import { BankCombobox } from "@/components/shared/combobox/BankCombobox";
+import { TransactionMethodCombobox } from "@/components/shared/combobox/TransactionMethodCombobox";
 
-interface CreatePaymentModalProps {
+interface CreateTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
 }
 
-export function CreatePaymentModal({ isOpen, onClose, onSuccess }: CreatePaymentModalProps) {
+export function CreateTransactionModal({ isOpen, onClose, onSuccess }: CreateTransactionModalProps) {
   const api = useRequests();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -67,8 +67,8 @@ export function CreatePaymentModal({ isOpen, onClose, onSuccess }: CreatePayment
     return () => clearTimeout(timer);
   }, [merchantSearch]);
 
-  const form = useForm<PaymentFormValues>({
-    resolver: zodResolver(PaymentSchema),
+  const form = useForm<TransactionFormValues>({
+    resolver: zodResolver(TransactionSchema),
     defaultValues: {
       title: "",
       amount: 0,
@@ -101,10 +101,10 @@ export function CreatePaymentModal({ isOpen, onClose, onSuccess }: CreatePayment
     enabled: isOpen,
   });
 
-  async function onSubmit(values: PaymentFormValues) {
+  async function onSubmit(values: TransactionFormValues) {
     setIsLoading(true);
     try {
-      await api.createPayment({
+      await api.createTransaction({
         title: values.title,
         date: format(values.date, "yyyy-MM-dd"),
         amount: values.amount,
@@ -113,12 +113,12 @@ export function CreatePaymentModal({ isOpen, onClose, onSuccess }: CreatePayment
         categoryId: values.categoryId === "none" || !values.categoryId ? null : values.categoryId,
       });
 
-      toast.success("Pagamento registrado!", {
+      toast.success("Transação registrada!", {
         description: `Valor: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(values.amount)}`,
       });
 
       // Invalidate queries to update lists
-      queryClient.invalidateQueries({ queryKey: ["payments-search"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions-search"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
 
       // Reset only amount to allow rapid entry
@@ -129,7 +129,7 @@ export function CreatePaymentModal({ isOpen, onClose, onSuccess }: CreatePayment
     } catch (error: any) {
       console.error(error);
       toast.error("Erro ao registrar", {
-        description: error.message || "Ocorreu um erro ao salvar o pagamento."
+        description: error.message || "Ocorreu um erro ao salvar a transação."
       });
     } finally {
       setIsLoading(false);
@@ -140,8 +140,8 @@ export function CreatePaymentModal({ isOpen, onClose, onSuccess }: CreatePayment
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Cadastrar Pagamento"
-      description="Preencha os dados do novo pagamento abaixo."
+      title="Cadastrar Transação"
+      description="Preencha os dados da nova transação abaixo."
       maxWidth="sm:max-w-[520px]"
     >
       <Form {...form}>
@@ -269,7 +269,7 @@ export function CreatePaymentModal({ isOpen, onClose, onSuccess }: CreatePayment
               <FormItem>
                 <FormLabel>Forma de Pagamento</FormLabel>
                 <FormControl>
-                  <PaymentMethodCombobox
+                  <TransactionMethodCombobox
                     value={field.value}
                     onChange={field.onChange}
                     placeholder="Selecione o método"
@@ -328,7 +328,7 @@ export function CreatePaymentModal({ isOpen, onClose, onSuccess }: CreatePayment
               Cancelar
             </Button>
             <Button className="w-1/2" type="submit" disabled={isLoading}>
-              {isLoading ? "Cadastrando..." : "Cadastrar Pagamento"}
+              {isLoading ? "Cadastrando..." : "Cadastrar Transação"}
             </Button>
           </div>
         </form>
