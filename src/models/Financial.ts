@@ -1,11 +1,14 @@
-export interface CategoryMetric {
+export interface DashboardMetric {
+  id: string; // Changed from name/slug to id to match backend
   name: string;
-  slug: string;
+  slug: string; // Keeping slug for backward compatibility if possible, or mapping id to it
   colorHex: string;
+  logoUrl?: string; // Add logoUrl
   type: 'income' | 'expense';
   total: number;
   average: number;
-  status: 'above_average' | 'below_average' | 'average';
+  status: 'above_average' | 'below_average' | 'average' | 'unknown';
+  groupedIds?: string[];  // IDs of aliases grouped into "Outros"
 }
 
 export interface MonthlyData {
@@ -16,7 +19,7 @@ export interface MonthlyData {
   expenses: number;
   investments: number;
   balance: number;
-  categories: CategoryMetric[];
+  metrics: DashboardMetric[];
 }
 
 export interface DashboardSummary {

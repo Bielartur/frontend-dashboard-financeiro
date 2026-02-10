@@ -58,6 +58,7 @@ export interface TransactionFilters {
   minAmount?: number;
   maxAmount?: number;
   page?: number;
+  merchantAliasIds?: string[];  // Supports multiple IDs for "Outros" drilldown
 }
 
 
