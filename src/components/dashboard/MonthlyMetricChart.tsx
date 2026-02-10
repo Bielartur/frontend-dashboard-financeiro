@@ -16,26 +16,27 @@ import {
 } from 'recharts';
 import { EmptyDashboardState } from './EmptyDashboardState';
 
-interface MonthlyCategoryChartProps {
+interface MonthlyMetricChartProps {
   selectedMonth: number | null;
   data: MonthlyData[];
   selectedYear: string;
   onSelectMonth: (month: number | null) => void;
+  type?: 'category' | 'merchant' | 'bank';
 }
 
-interface CategoryChartItem {
+interface MetricChartItem {
   name: string;
-  category: string;
+  metricId: string;
   value: number;
   base: number;
   excess: number;
   savings: number;
   average: number;
   fill: string;
-  status: 'above_average' | 'below_average' | 'average';
+  status: 'above_average' | 'below_average' | 'average' | 'unknown';
 }
 
-export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSelectMonth }: MonthlyCategoryChartProps) {
+export function MonthlyMetricChart({ selectedMonth, data, selectedYear, onSelectMonth, type = 'category' }: MonthlyMetricChartProps) {
   // Internal state to handle "Annual Report" (-1) without affecting global selectedMonth
   const [internalMonth, setInternalMonth] = useState<number | null>(selectedMonth);
 
@@ -63,77 +64,78 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
   // Check if we have data to show
   const hasData = useMemo(() => {
     if (isAnnualReport) {
-      return data.some(m => m.categories.length > 0);
+      return data.some(m => m.metrics.length > 0);
     }
-    return internalMonth !== null && data[internalMonth] && data[internalMonth].categories.length > 0;
+    return internalMonth !== null && data[internalMonth] && data[internalMonth].metrics.length > 0;
   }, [isAnnualReport, internalMonth, data]);
 
 
-  // Build category chart data
-  const categoryChartData: CategoryChartItem[] = useMemo(() => {
+  // Build chart data
+  const chartData: MetricChartItem[] = useMemo(() => {
     if (isAnnualReport) {
       // Annual Totals - Need to aggregate since backend provides monthly breakdown
       // For Annual, we don't have a "status" or "average" really, just total.
-      const categoryMap = new Map<string, CategoryChartItem>();
+      const metricMap = new Map<string, MetricChartItem>();
 
       data.forEach(month => {
-        month.categories.forEach(cat => {
+        month.metrics.forEach(metric => {
           // Usually we show Expenses here
-          if (cat.type !== 'expense') return;
+          if (metric.type !== 'expense') return;
 
-          const existing = categoryMap.get(cat.slug);
+          const slug = metric.id || metric.slug;
+          const existing = metricMap.get(slug);
           if (existing) {
-            existing.value += Math.abs(Number(cat.total));
-            existing.base += Math.abs(Number(cat.total));
+            existing.value += Math.abs(Number(metric.total));
+            existing.base += Math.abs(Number(metric.total));
           } else {
-            categoryMap.set(cat.slug, {
-              name: cat.name,
-              category: cat.slug,
-              value: Math.abs(Number(cat.total)),
-              base: Math.abs(Number(cat.total)),
+            metricMap.set(slug, {
+              name: metric.name,
+              metricId: slug,
+              value: Math.abs(Number(metric.total)),
+              base: Math.abs(Number(metric.total)),
               excess: 0,
               savings: 0,
               average: 0,
-              fill: cat.colorHex,
+              fill: metric.colorHex,
               status: 'average'
             });
           }
         });
       });
-      return Array.from(categoryMap.values()).sort((a, b) => b.value - a.value);
+      return Array.from(metricMap.values()).sort((a, b) => b.value - a.value);
     }
 
     if (!isMonthSelected || internalMonth === null || !data[internalMonth]) return [];
 
     const monthData = data[internalMonth];
 
-    // Convert CategoryMetric[] to ChartItem
-    return monthData.categories
-      .filter(cat => cat.type === 'expense') // Filter for expenses
-      .map((cat) => {
-        const value = Math.abs(Number(cat.total));
-        const average = Math.abs(Number(cat.average));
+    // Convert DashboardMetric[] to ChartItem
+    return monthData.metrics
+      .filter(metric => metric.type === 'expense') // Filter for expenses
+      .map((metric) => {
+        const value = Math.abs(Number(metric.total));
+        const average = Math.abs(Number(metric.average));
         const isAboveAverage = value > average;
         const isBelowAverage = value < average;
 
         return {
-          name: cat.name,
-          category: cat.slug,
+          name: metric.name,
+          metricId: metric.id || metric.slug,
           value,
           base: isAboveAverage ? average : value,
           excess: isAboveAverage ? value - average : 0,
           savings: isBelowAverage && average > 0 ? average - value : 0,
           average,
-          fill: cat.colorHex,
-          status: cat.status
+          fill: metric.colorHex,
+          status: metric.status
         };
       })
       .sort((a, b) => b.value - a.value);
   }, [internalMonth, isAnnualReport, isMonthSelected, data]);
 
-  const CustomTooltipCategory = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
-      const data = payload[0]?.payload as CategoryChartItem;
+      const data = payload[0]?.payload as MetricChartItem;
       if (!data) return null;
 
       if (isAnnualReport) {
@@ -196,7 +198,7 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
     const { x, y, width, height, payload } = props;
     if (!payload) return null;
 
-    const data = payload as CategoryChartItem;
+    const data = payload as MetricChartItem;
 
     if (data.average === 0 || isAnnualReport) {
       return (
@@ -233,12 +235,17 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
     );
   };
 
+  const getTitle = () => {
+    const suffix = type === 'category' ? 'categoria' : type === 'merchant' ? 'estabelecimento' : 'banco';
+    return isAnnualReport ? `Ranking Anual de Gastos` : `Relatório de gastos por ${suffix}`;
+  };
+
   return (
     <div className="glass-card rounded-xl p-6 animate-slide-up" style={{ animationDelay: '300ms' }}>
       <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
         <div>
           <span className="text-lg font-bold text-foreground mb-1">
-            {isAnnualReport ? "Ranking Anual de Gastos" : "Relatório de gastos por mês"}
+            {getTitle()}
           </span>
           <h3 className="text-sm font-medium text-muted-foreground">
             {isAnnualReport
@@ -266,7 +273,7 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
           <ResponsiveContainer width="100%" height="100%">
             {(isAnnualReport || (internalMonth !== null && data[internalMonth])) ? (
               <BarChart
-                data={categoryChartData}
+                data={chartData}
                 layout="vertical"
                 margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
               >
@@ -280,7 +287,7 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
                   tickFormatter={(value) => `${(value / 1000).toFixed(1)}k`}
                   domain={[0, (dataMax: number) => {
                     if (isAnnualReport) return dataMax * 1.1;
-                    const maxAvg = Math.max(...categoryChartData.map(d => d.average));
+                    const maxAvg = Math.max(...chartData.map(d => d.average));
                     return Math.max(dataMax, maxAvg) * 1.1;
                   }]}
                 />
@@ -293,7 +300,7 @@ export function MonthlyCategoryChart({ selectedMonth, data, selectedYear, onSele
                   axisLine={false}
                   width={90}
                 />
-                <Tooltip content={<CustomTooltipCategory />} cursor={{ fill: 'hsl(var(--muted)/0.1)' }} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted)/0.1)' }} />
                 <Bar
                   dataKey="value"
                   shape={<CustomBar />}

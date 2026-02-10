@@ -18,13 +18,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -327,8 +320,8 @@ export function CreateTransactionModal({ isOpen, onClose, onSuccess }: CreateTra
             <Button className="w-1/2" type="button" variant="outline" onClick={onClose} disabled={isLoading}>
               Cancelar
             </Button>
-            <Button className="w-1/2" type="submit" disabled={isLoading}>
-              {isLoading ? "Cadastrando..." : "Cadastrar Transação"}
+            <Button className="w-1/2" type="submit" isLoading={isLoading}>
+              Cadastrar Transação
             </Button>
           </div>
         </form>

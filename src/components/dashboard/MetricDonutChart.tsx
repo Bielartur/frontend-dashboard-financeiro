@@ -7,37 +7,42 @@ import { MonthlyData } from '@/models/Financial';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { EmptyDashboardState } from './EmptyDashboardState';
 
-interface CategoryDonutChartProps {
+interface MetricDonutChartProps {
   selectedMonth: number | null;
   data: MonthlyData[];
+  title?: string;
+  type?: 'category' | 'merchant' | 'bank';
 }
 
-export function CategoryDonutChart({ selectedMonth, data }: CategoryDonutChartProps) {
+export function MetricDonutChart({ selectedMonth, data, title, type = 'category' }: MetricDonutChartProps) {
   // Aggregate data based on selection
-  const aggregatedCategories = useMemo(() => {
-    const categoryMap = new Map<string, { name: string; value: number; color: string }>();
+  const aggregatedMetrics = useMemo(() => {
+    const metricMap = new Map<string, { name: string; value: number; color: string }>();
 
     const monthsToProcess = selectedMonth !== null ? [data[selectedMonth]] : data;
 
     monthsToProcess.forEach(month => {
       if (!month) return;
-      month.categories.forEach(cat => {
+      month.metrics.forEach(metric => {
         // Filter for EXPENSES only for the donut chart to make sense
-        if (cat.type !== 'expense') return;
+        if (metric.type !== 'expense') return;
 
-        const current = categoryMap.get(cat.slug) || { name: cat.name, value: 0, color: cat.colorHex };
-        current.value += Math.abs(Number(cat.total));
-        categoryMap.set(cat.slug, current);
+        // Use id as slug since backend returns id (which is slug for categories)
+        const slug = metric.id || metric.slug;
+
+        const current = metricMap.get(slug) || { name: metric.name, value: 0, color: metric.colorHex };
+        current.value += Math.abs(Number(metric.total));
+        metricMap.set(slug, current);
       });
     });
 
-    return Array.from(categoryMap.values());
+    return Array.from(metricMap.values());
   }, [selectedMonth, data]);
 
-  const total = aggregatedCategories.reduce((sum, item) => sum + item.value, 0);
+  const total = aggregatedMetrics.reduce((sum, item) => sum + item.value, 0);
   const hasData = total > 0;
 
-  const chartData = aggregatedCategories
+  const chartData = aggregatedMetrics
     .map((item) => ({
       name: item.name,
       value: item.value,
@@ -62,12 +67,20 @@ export function CategoryDonutChart({ selectedMonth, data }: CategoryDonutChartPr
     return null;
   };
 
+  const getTitle = () => {
+    if (title) return title;
+
+    const suffix = type === 'category' ? 'Categoria' : type === 'merchant' ? 'Estabelecimento' : 'Banco';
+
+    return selectedMonth !== null && data[selectedMonth]
+      ? `Distribuição - ${data[selectedMonth].month}`
+      : `Distribuição Anual por ${suffix}`;
+  };
+
   return (
     <div className="glass-card rounded-xl p-6 animate-slide-up" style={{ animationDelay: '400ms' }}>
       <h3 className="text-lg font-semibold text-foreground mb-6">
-        {selectedMonth !== null && data[selectedMonth]
-          ? `Distribuição - ${data[selectedMonth].month}`
-          : 'Distribuição Anual por Categoria'}
+        {getTitle()}
       </h3>
       {!hasData ? (
         <EmptyDashboardState height="h-[250px]" />

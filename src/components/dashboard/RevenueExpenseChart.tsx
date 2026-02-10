@@ -14,11 +14,10 @@ import {
 import { EmptyDashboardState } from './EmptyDashboardState';
 
 interface RevenueExpenseChartProps {
-  selectedMonth: number | null;
   data: MonthlyData[];
 }
 
-export function RevenueExpenseChart({ selectedMonth, data }: RevenueExpenseChartProps) {
+export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
   const filledData = useMemo(() => {
     if (data.length === 0) return [];
 
@@ -79,9 +78,7 @@ export function RevenueExpenseChart({ selectedMonth, data }: RevenueExpenseChart
   return (
     <div className="glass-card rounded-xl p-6 animate-slide-up" style={{ animationDelay: '200ms' }}>
       <h3 className="text-lg font-semibold text-foreground mb-6">
-        {selectedMonth !== null && data[selectedMonth]
-          ? `Receita vs Gastos - ${data[selectedMonth].month} `
-          : 'Evolução Mensal: Receita vs Gastos'}
+        Evolução Mensal: Receita vs Gastos
       </h3>
       <div className="h-[300px]">
         {!hasData ? (

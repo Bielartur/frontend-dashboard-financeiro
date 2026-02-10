@@ -34,7 +34,7 @@ export const Sidebar = () => {
           <div className="space-y-1">
             <SidebarMenuItem icon={BarChart3} label="Dashboard" path="/" />
             <SidebarMenuItem icon={ArrowLeftRight} label="Transações" path="/transactions" />
-            <SidebarMenuItem icon={CreditCard} label="Assinaturas" path="/subscriptions" />
+            {/* <SidebarMenuItem icon={CreditCard} label="Assinaturas" path="/subscriptions" /> */}
           </div>
         </div>
 
@@ -44,7 +44,7 @@ export const Sidebar = () => {
             Outros
           </h2>
           <div className="space-y-1">
-            <SidebarMenuItem icon={Settings} label="Configurações" path="/profile" />
+            <SidebarMenuItem icon={Settings} label="Configurações" path="/profile/merchants" />
           </div>
         </div>
       </nav>

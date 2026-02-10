@@ -214,12 +214,13 @@ const ImportTransactions = () => {
 
           <Button
             onClick={handleImport}
-            disabled={isImporting || !file || !selectedBank}
+            isLoading={isImporting}
+            disabled={!file || !selectedBank}
             className="w-full gap-2"
             variant="outline"
           >
             <Upload className="h-4 w-4" />
-            {isImporting ? "Processando..." : "Carregar Fatura"}
+            Carregar Fatura
           </Button>
         </div>
       </div>
@@ -232,9 +233,9 @@ const ImportTransactions = () => {
             Transações Selecionadas ({selectedIndices.size}/{importedTransactions.length})
           </h2>
           {importedTransactions.length > 0 && (
-            <Button onClick={handleSaveTransactions} disabled={isSaving} className="gap-2">
+            <Button onClick={handleSaveTransactions} isLoading={isSaving} className="gap-2">
               <Check className="h-4 w-4" />
-              {isSaving ? "Salvando..." : "Confirmar Importação"}
+              Confirmar Importação
             </Button>
           )}
         </div>

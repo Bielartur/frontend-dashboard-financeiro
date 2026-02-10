@@ -33,42 +33,45 @@ import { TrendingUp, Check, ChevronsUpDown, PlusCircle } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { EmptyDashboardState } from './EmptyDashboardState';
 
-interface CategoryEvolutionChartProps {
-  selectedCategories: string[];
+interface MetricEvolutionChartProps {
+  selectedMetrics: string[];
   data: MonthlyData[];
   selectedYear: string;
-  onSelectCategories: (categories: string[]) => void;
+  onSelectMetrics: (metrics: string[]) => void;
+  type?: 'category' | 'merchant' | 'bank';
 }
 
-export function CategoryEvolutionChart({
-  selectedCategories,
+export function MetricEvolutionChart({
+  selectedMetrics,
   data,
   selectedYear,
-  onSelectCategories,
-}: CategoryEvolutionChartProps) {
+  onSelectMetrics,
+  type = 'category'
+}: MetricEvolutionChartProps) {
   const [open, setOpen] = useState(false);
 
-  // Extract all unique categories from the data for the dropdown
-  const categoryMeta = useMemo(() => {
+  // Extract all unique metrics from the data for the dropdown
+  const metricMeta = useMemo(() => {
     const meta = new Map<string, { name: string; color: string }>();
     data.forEach(month => {
-      month.categories.forEach(cat => {
-        if (!meta.has(cat.slug)) {
-          meta.set(cat.slug, { name: cat.name, color: cat.colorHex });
+      month.metrics.forEach(metric => {
+        const slug = metric.id || metric.slug;
+        if (!meta.has(slug)) {
+          meta.set(slug, { name: metric.name, color: metric.colorHex });
         }
       });
     });
     return meta;
   }, [data]);
 
-  const availableCategories = Array.from(categoryMeta.keys());
-  const hasData = availableCategories.length > 0;
+  const availableMetrics = Array.from(metricMeta.keys());
+  const hasData = availableMetrics.length > 0;
 
-  const toggleCategory = (category: string) => {
-    if (selectedCategories.includes(category)) {
-      onSelectCategories(selectedCategories.filter((c) => c !== category));
+  const toggleMetric = (metric: string) => {
+    if (selectedMetrics.includes(metric)) {
+      onSelectMetrics(selectedMetrics.filter((c) => c !== metric));
     } else {
-      onSelectCategories([...selectedCategories, category]);
+      onSelectMetrics([...selectedMetrics, metric]);
     }
   };
 
@@ -102,7 +105,7 @@ export function CategoryEvolutionChart({
             expenses: 0,
             investments: 0,
             balance: 0,
-            categories: []
+            metrics: []
           });
         }
       }
@@ -113,30 +116,31 @@ export function CategoryEvolutionChart({
 
   useEffect(() => {
     // Only set defaults if no categories are selected and we have data
-    if (selectedCategories.length === 0 && filledData.length > 0) {
+    if (selectedMetrics.length === 0 && filledData.length > 0) {
       const totals = new Map<string, number>();
 
       filledData.forEach(month => {
-        month.categories?.forEach(cat => {
-          if (cat.type === 'expense') {
-            totals.set(cat.slug, (totals.get(cat.slug) || 0) + Math.abs(Number(cat.total)));
+        month.metrics?.forEach(metric => {
+          const slug = metric.id || metric.slug;
+          if (metric.type === 'expense') {
+            totals.set(slug, (totals.get(slug) || 0) + Math.abs(Number(metric.total)));
           }
         });
       });
 
-      const topCategories = Array.from(totals.entries())
+      const topMetrics = Array.from(totals.entries())
         .sort((a, b) => b[1] - a[1]) // Sort by total descending
         .slice(0, 2)
         .map(entry => entry[0]);
 
-      if (topCategories.length > 0) {
-        onSelectCategories(topCategories);
+      if (topMetrics.length > 0) {
+        onSelectMetrics(topMetrics);
       }
     }
-  }, [filledData, onSelectCategories]); // Intentionally omitting selectedCategories to avoid fighting user clear action
+  }, [filledData, onSelectMetrics]); // Intentionally omitting selectedCategories to avoid fighting user clear action
 
   const chartData = useMemo(() => {
-    if (selectedCategories.length === 0) return [];
+    if (selectedMetrics.length === 0) return [];
 
     const currentYear = new Date().getFullYear();
     const currentMonthIndex = new Date().getMonth();
@@ -153,25 +157,37 @@ export function CategoryEvolutionChart({
         fullMonth: month.month,
       };
 
-      selectedCategories.forEach(catSlug => {
+      selectedMetrics.forEach(slug => {
         // Need to check if categories exists (mock object has empty list)
-        const catMetric = month.categories?.find(c => c.slug === catSlug);
-        monthData[catSlug] = isFuture ? 0 : Math.abs(Number(catMetric?.total || 0));
+        const metric = month.metrics?.find(c => (c.id || c.slug) === slug);
+        monthData[slug] = isFuture ? 0 : Math.abs(Number(metric?.total || 0));
       });
 
       return monthData;
     });
-  }, [selectedCategories, filledData, selectedYear]);
+  }, [selectedMetrics, filledData, selectedYear]);
+
+  const getTitle = () => {
+    const noun = type === 'category' ? 'Categoria' : type === 'merchant' ? 'Estabelecimento' : 'Banco';
+    return {
+      title: `Evolução mensal por ${noun.toLowerCase()}`,
+      placeholder: `Buscar ${noun.toLowerCase()}...`,
+      selected: `${selectedMetrics.length} ${noun.toLowerCase()}(s) selecionado(s)`,
+      empty: `Nenhum(a) ${noun.toLowerCase()} encontrado(a).`
+    }
+  }
+
+  const uiLabels = getTitle();
 
   return (
     <div className="glass-card rounded-xl p-6 animate-slide-up" style={{ animationDelay: '400ms' }}>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
         <div>
-          <span className="text-lg font-bold text-foreground mb-1">Evolução anual por categoria</span>
+          <span className="text-lg font-bold text-foreground mb-1">{uiLabels.title}</span>
           <p className="text-sm font-medium text-muted-foreground">
-            {selectedCategories.length > 0
-              ? `${selectedCategories.length} categor(ias) selecionada(s) ${formatPeriodLabel(selectedYear, 'in')}`
-              : `Selecione categorias para comparar`}
+            {selectedMetrics.length > 0
+              ? `${selectedMetrics.length} selecionado(s) ${formatPeriodLabel(selectedYear, 'in')}`
+              : `Selecione para comparar`}
           </p>
         </div>
 
@@ -185,17 +201,17 @@ export function CategoryEvolutionChart({
               disabled={!hasData}
             >
               <div className="flex gap-1 flex-wrap truncate">
-                {selectedCategories.length === 0 && "Selecione categorias"}
-                {selectedCategories.length > 0 && selectedCategories.length <= 2 ? (
-                  selectedCategories.map((cat) => (
-                    <Badge variant="secondary" key={cat} className="mr-1 bg-secondary/50 text-foreground font-normal border-none px-1.5 py-0 h-5">
-                      {categoryMeta.get(cat)?.name || cat}
+                {selectedMetrics.length === 0 && "Selecione..."}
+                {selectedMetrics.length > 0 && selectedMetrics.length <= 2 ? (
+                  selectedMetrics.map((met) => (
+                    <Badge variant="secondary" key={met} className="mr-1 bg-secondary/50 text-foreground font-normal border-none px-1.5 py-0 h-5">
+                      {metricMeta.get(met)?.name || met}
                     </Badge>
                   ))
                 ) : (
-                  selectedCategories.length > 2 && (
+                  selectedMetrics.length > 2 && (
                     <Badge variant="secondary" className="bg-secondary/50 text-foreground font-normal border-none h-5">
-                      {selectedCategories.length} selecionadas
+                      {selectedMetrics.length} selecionados
                     </Badge>
                   )
                 )}
@@ -205,36 +221,36 @@ export function CategoryEvolutionChart({
           </PopoverTrigger>
           <PopoverContent className="w-[250px] p-0" align="end">
             <Command>
-              <CommandInput placeholder="Buscar categoria..." />
+              <CommandInput placeholder={uiLabels.placeholder} />
               <CommandList>
-                <CommandEmpty>Nenhuma categoria encontrada.</CommandEmpty>
+                <CommandEmpty>{uiLabels.empty}</CommandEmpty>
                 <CommandGroup>
-                  {availableCategories.map((category) => (
+                  {availableMetrics.map((met) => (
                     <CommandItem
-                      key={category}
-                      onSelect={() => toggleCategory(category)}
+                      key={met}
+                      onSelect={() => toggleMetric(met)}
                       className="cursor-pointer"
                     >
                       <div
                         className={cn(
                           "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                          selectedCategories.includes(category)
+                          selectedMetrics.includes(met)
                             ? "bg-primary text-primary-foreground"
                             : "opacity-50 [&_svg]:invisible"
                         )}
                       >
                         <Check className={cn("h-4 w-4")} />
                       </div>
-                      <span>{categoryMeta.get(category)?.name || category}</span>
+                      <span>{metricMeta.get(met)?.name || met}</span>
                     </CommandItem>
                   ))}
                 </CommandGroup>
-                {selectedCategories.length > 0 && (
+                {selectedMetrics.length > 0 && (
                   <>
                     <CommandSeparator />
                     <CommandGroup>
                       <CommandItem
-                        onSelect={() => onSelectCategories([])}
+                        onSelect={() => onSelectMetrics([])}
                         className="justify-center text-center cursor-pointer"
                       >
                         Limpar filtros
@@ -251,7 +267,7 @@ export function CategoryEvolutionChart({
       <div className="h-[300px]">
         {!hasData ? (
           <EmptyDashboardState height="h-full" />
-        ) : selectedCategories.length > 0 ? (
+        ) : selectedMetrics.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} vertical={false} />
@@ -299,13 +315,13 @@ export function CategoryEvolutionChart({
                   return null;
                 }}
               />
-              {selectedCategories.map((category) => (
+              {selectedMetrics.map((met) => (
                 <Line
-                  key={category}
+                  key={met}
                   type="monotone"
-                  dataKey={category}
-                  name={categoryMeta.get(category)?.name || category}
-                  stroke={categoryMeta.get(category)?.color || '#888888'}
+                  dataKey={met}
+                  name={metricMeta.get(met)?.name || met}
+                  stroke={metricMeta.get(met)?.color || '#888888'}
                   strokeWidth={2}
                   dot={false}
                   activeDot={{ r: 4, strokeWidth: 0 }}
@@ -320,7 +336,7 @@ export function CategoryEvolutionChart({
               <TrendingUp className="h-6 w-6 text-muted-foreground" />
             </div>
             <p className="text-sm text-muted-foreground max-w-[300px]">
-              Selecione pelo menos uma categoria acima para visualizar a evolução.
+              Selecione pelo menos um item acima para visualizar a evolução.
             </p>
             <Button
               variant="outline"
@@ -329,7 +345,7 @@ export function CategoryEvolutionChart({
               className="mt-2"
             >
               <PlusCircle className="w-4 h-4 mr-2" />
-              Selecionar categorias
+              Selecionar
             </Button>
           </div>
         )}

@@ -150,18 +150,9 @@ export default function Signup() {
                 )}
               />
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Criando conta...
-                  </>
-                ) : (
-                  <>
-                    Criar conta
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
-                )}
+              <Button type="submit" className="w-full" isLoading={isLoading}>
+                Criar conta
+                {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
               </Button>
             </form>
           </Form>

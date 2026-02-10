@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 // Removed Input import as it is now inside DebouncedSearchInput
 import { Pencil, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
-import { EditCategoryModal } from "@/components/admin/categories/EditCategoryModal";
+import { EditCategoryModal } from "@/components/admin/EditCategoryModal";
 import { toast } from "sonner";
 import { DebouncedSearchInput } from "@/components/shared/DebouncedSearchInput";
 

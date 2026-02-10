@@ -7,6 +7,7 @@ export function useDashboard(year: string = 'last-12') {
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [groupBy, setGroupBy] = useState<'category' | 'merchant' | 'bank'>('category');
   const { getDashboard } = useRequests();
 
   const fetchDashboardData = useCallback(async () => {
@@ -14,7 +15,7 @@ export function useDashboard(year: string = 'last-12') {
       setIsLoading(true);
       setError(null);
 
-      const dashboardData = await getDashboard(year);
+      const dashboardData = await getDashboard(year, groupBy);
       setData(dashboardData);
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
@@ -23,7 +24,7 @@ export function useDashboard(year: string = 'last-12') {
     } finally {
       setIsLoading(false);
     }
-  }, [year]);
+  }, [year, groupBy]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -38,6 +39,8 @@ export function useDashboard(year: string = 'last-12') {
     isLoading,
     error,
     refresh,
+    groupBy,
+    setGroupBy,
     getAvailableMonths: useRequests().getAvailableMonths
   };
 }

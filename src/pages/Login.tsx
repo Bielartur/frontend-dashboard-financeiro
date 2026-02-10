@@ -93,18 +93,9 @@ export default function Login() {
                 )}
               />
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Entrando...
-                  </>
-                ) : (
-                  <>
-                    Entrar
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
-                )}
+              <Button type="submit" className="w-full" isLoading={isLoading}>
+                Entrar
+                {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
               </Button>
             </form>
           </Form>

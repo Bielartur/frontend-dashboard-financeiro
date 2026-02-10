@@ -338,8 +338,8 @@ export function EditTransactionModal({ isOpen, onClose, transaction }: EditTrans
             <Button className="w-1/2" type="button" variant="outline" onClick={onClose} disabled={isLoading}>
               Cancelar
             </Button>
-            <Button className="w-1/2" type="submit" disabled={isLoading}>
-              {isLoading ? "Salvando..." : "Salvar Alterações"}
+            <Button className="w-1/2" type="submit" isLoading={isLoading}>
+              Salvar Alterações
             </Button>
           </div>
         </form>
