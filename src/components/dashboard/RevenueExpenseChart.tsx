@@ -76,7 +76,7 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
   };
 
   return (
-    <div className="glass-card rounded-xl p-6 animate-slide-up" style={{ animationDelay: '200ms' }}>
+    <div className="glass-card rounded-xl p-6 opacity-0 animate-slide-up">
       <h3 className="text-lg font-semibold text-foreground mb-6">
         Evolução Mensal: Receita vs Gastos
       </h3>

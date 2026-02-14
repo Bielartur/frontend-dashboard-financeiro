@@ -241,8 +241,8 @@ export function MonthlyMetricChart({ selectedMonth, data, selectedYear, onSelect
   };
 
   return (
-    <div className="glass-card rounded-xl p-6 animate-slide-up" style={{ animationDelay: '300ms' }}>
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+    <div className="glass-card rounded-xl p-6 opacity-0 animate-slide-up" style={{ animationDelay: '400ms' }}>
+      <div className="flex flex-col sm:flex-row justify-between mb-6 gap-4">
         <div>
           <span className="text-lg font-bold text-foreground mb-1">
             {getTitle()}
@@ -275,7 +275,7 @@ export function MonthlyMetricChart({ selectedMonth, data, selectedYear, onSelect
               <BarChart
                 data={chartData}
                 layout="vertical"
-                margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
+                margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} horizontal={true} vertical={false} />
                 <XAxis

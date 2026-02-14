@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "./layouts/DashboardLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import { ProfileLayout } from "./layouts/ProfileLayout";
-import Index from "./pages/Index";
 import SearchTransactions from "./pages/SearchTransactions";
 import ImportTransactions from "./pages/ImportTransactions";
 import NotFound from "./pages/NotFound";
@@ -14,6 +13,8 @@ import ProfileMerchants from "@/pages/profile/ProfileMerchants";
 import ProfilePreferences from "@/pages/profile/ProfilePreferences";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import DashboardOverviewLayout from "./layouts/DashboardOverviewLayout";
+import DashboardContent from "./pages/dashboard/DashboardContent";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 export const AppRouter = () => {
@@ -33,7 +34,13 @@ export const AppRouter = () => {
           </Route>
 
           <Route element={<DashboardLayout />}>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<DashboardOverviewLayout />}>
+              <Route index element={<Navigate to="categories" replace />} />
+              <Route path="categories" element={<DashboardContent />} />
+              <Route path="banks" element={<DashboardContent />} />
+              <Route path="merchants" element={<DashboardContent />} />
+            </Route>
+
             <Route path="/transactions" element={<SearchTransactions />} />
             <Route path="/import-transactions" element={<ImportTransactions />} />
 
@@ -46,7 +53,7 @@ export const AppRouter = () => {
 
             {/* Profile Routes */}
             <Route path="/profile" element={<ProfileLayout />}>
-              <Route index element={<Navigate to="/profile/account" replace />} />
+              <Route index element={<Navigate to="/profile/merchants" replace />} />
               <Route path="account" element={<ProfileAccount />} />
               <Route path="categories" element={<ProfileCategories />} />
               <Route path="merchants" element={<ProfileMerchants />} />
