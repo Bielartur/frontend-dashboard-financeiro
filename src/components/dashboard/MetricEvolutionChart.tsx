@@ -180,7 +180,7 @@ export function MetricEvolutionChart({
   const uiLabels = getTitle();
 
   return (
-    <div className="glass-card rounded-xl p-6 animate-slide-up" style={{ animationDelay: '400ms' }}>
+    <div className="glass-card rounded-xl p-6 opacity-0 animate-slide-up" style={{ animationDelay: '600ms' }}>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
         <div>
           <span className="text-lg font-bold text-foreground mb-1">{uiLabels.title}</span>

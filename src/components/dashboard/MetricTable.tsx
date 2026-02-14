@@ -239,8 +239,8 @@ export function MetricTable({ selectedMonth, selectedYear, data, type = 'categor
   const uiLabels = getTitle();
 
   return (
-    <div className="glass-card rounded-xl p-6 animate-slide-up" style={{ animationDelay: '500ms' }}>
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+    <div className="glass-card rounded-xl p-6 opacity-0 animate-slide-up" style={{ animationDelay: '800ms' }}>
+      <div className="flex flex-col sm:flex-row justify-between mb-6 gap-4">
         <div>
           <h3 className="text-lg font-semibold text-foreground">
             {selectedMonth !== null && data[selectedMonth]

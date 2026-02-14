@@ -3,11 +3,10 @@ import { useRequests } from '@/hooks/use-requests';
 import { DashboardResponse } from '@/models/Financial';
 import { toast } from 'sonner';
 
-export function useDashboard(year: string = 'last-12') {
+export function useDashboard(year: string = 'last-12', groupBy: 'category' | 'merchant' | 'bank' = 'category') {
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [groupBy, setGroupBy] = useState<'category' | 'merchant' | 'bank'>('category');
   const { getDashboard } = useRequests();
 
   const fetchDashboardData = useCallback(async () => {
@@ -39,8 +38,6 @@ export function useDashboard(year: string = 'last-12') {
     isLoading,
     error,
     refresh,
-    groupBy,
-    setGroupBy,
     getAvailableMonths: useRequests().getAvailableMonths
   };
 }

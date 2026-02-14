@@ -78,7 +78,7 @@ export function MetricDonutChart({ selectedMonth, data, title, type = 'category'
   };
 
   return (
-    <div className="glass-card rounded-xl p-6 animate-slide-up" style={{ animationDelay: '400ms' }}>
+    <div className="glass-card rounded-xl p-6 opacity-0 animate-slide-up" style={{ animationDelay: '200ms' }}>
       <h3 className="text-lg font-semibold text-foreground mb-6">
         {getTitle()}
       </h3>

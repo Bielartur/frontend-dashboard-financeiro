@@ -39,16 +39,15 @@ export function useDashboardView(): UseDashboardViewReturn {
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>("last-12");
   const [availableMonthsList, setAvailableMonthsList] = useState<{ year: number, month: number, label: string }[]>([]);
+  const [groupBy, setGroupBy] = useState<'category' | 'merchant' | 'bank'>('category');
 
   const {
     data: dashboardData,
     isLoading,
     error,
     refresh,
-    groupBy,
-    setGroupBy,
     getAvailableMonths
-  } = useDashboard(selectedYear);
+  } = useDashboard(selectedYear, groupBy);
 
   useEffect(() => {
     getAvailableMonths().then(data => {
